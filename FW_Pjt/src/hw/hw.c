@@ -17,7 +17,7 @@ void hwInit(void)
   usbInit();
 
   buttonInit();
-
   cliInit();
+  gpioInit();
 
 }

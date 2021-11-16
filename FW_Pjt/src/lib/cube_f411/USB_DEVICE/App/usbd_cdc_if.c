@@ -120,11 +120,11 @@ uint8_t USBD_CDC_SOF(struct _USBD_HandleTypeDef *pdev)
   if(rx_full == true)
   {
     uint32_t buf_len;
-      // 수신 버퍼에서 비어있는 데이터양//
+    	// check receive buff size //
       buf_len = (rx_len - cdcAvailable()) - 1;
       if(buf_len >= USB_FS_MAX_PACKET_SIZE)
       {
-        //다음 데이터도 보내줘//
+      	// request next data //
         USBD_CDC_ReceivePacket(pdev);
         rx_full = false;
       }
@@ -391,17 +391,17 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   }
 
   uint32_t buf_len;
-  // 수신 버퍼에서 비어있는 데이터양//
+  // check receive buff size //
   buf_len = (rx_len - cdcAvailable()) - 1;
   if(buf_len >= USB_FS_MAX_PACKET_SIZE)
   {
-    //다음 데이터도 보내줘//
+    // request next data //
     USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   }
   else
   {
-    //버퍼용량이 부족, 기다려요//
+    // full buf. wait time //
     rx_full = true;
   }
 

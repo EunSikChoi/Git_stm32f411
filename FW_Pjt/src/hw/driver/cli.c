@@ -230,7 +230,7 @@ bool cliUpdate(cli_t *p_cli, uint8_t rx_data)
         }
 
        // p_cli->line.count =0; // 아래와 같은 표현이지만 *line 선언해서 좀더 간결하게 맴버에 접근함//
-         line->count = 0;
+        line->count = 0;
         line->cursor = 0;
         line->buf[0] = 0;
         cliShowPrompt(p_cli);

@@ -18,6 +18,7 @@
 #include "button.h"
 //#include "reset.h"
 #include "cli.h"
+#include "gpio.h"
 
 
 
