@@ -10,6 +10,15 @@
 
 
 #include "hw_def.h"
+#include "uart.h"
+//#include "rtc.h"
+//#include "flash.h"
+#include "led.h"
+#include "usb.h"
+//#include "reset.h"
+#include "cli.h"
+
+
 
 void hwInit(void);
 
