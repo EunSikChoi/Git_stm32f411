@@ -15,6 +15,7 @@
 //#include "flash.h"
 #include "led.h"
 #include "usb.h"
+#include "button.h"
 //#include "reset.h"
 #include "cli.h"
 

@@ -146,7 +146,7 @@ USBD_ClassTypeDef  USBD_CDC =
   USBD_CDC_EP0_RxReady,
   USBD_CDC_DataIn,
   USBD_CDC_DataOut,
-	USBD_CDC_SOF,
+  USBD_CDC_SOF,
   NULL,
   NULL,
   USBD_CDC_GetHSCfgDesc,

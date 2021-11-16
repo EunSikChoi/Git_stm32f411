@@ -16,6 +16,8 @@ void hwInit(void)
   ledInit();
   usbInit();
 
+  buttonInit();
+
   cliInit();
 
 }

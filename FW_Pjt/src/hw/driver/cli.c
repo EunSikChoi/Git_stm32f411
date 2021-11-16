@@ -120,10 +120,10 @@ bool cliInit(void)
   cli_node.hist_line_count = 0;
   cli_node.hist_line_new   = false;
 
-  cli_node.cmd_args.getData  = cliArgsGetData;   // 입력 인수의 정수형 데이터 GET
-  cli_node.cmd_args.getFloat = cliArgsGetFloat;  // 입력 인수의 플롯형 데이터 GET
-  cli_node.cmd_args.getStr   = cliArgsGetStr;
-  cli_node.cmd_args.isStr    = cliArgsIsStr;
+  cli_node.cmd_args.getData  = cliArgsGetData;   // 입력 인수의 정수형 숫자 데이터 GET
+  cli_node.cmd_args.getFloat = cliArgsGetFloat;  // 입력 인수의 플롯형 숫자 데이터 GET
+  cli_node.cmd_args.getStr   = cliArgsGetStr;    // 입력된 string 문자 GET
+  cli_node.cmd_args.isStr    = cliArgsIsStr;     // 입력된 string 문자 비교해서 동일하면 "1" 리턴
 
   cliLineClean(&cli_node);
 

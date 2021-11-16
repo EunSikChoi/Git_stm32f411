@@ -23,9 +23,8 @@ void apMain(void)
 		if(millis()-pre_time >= 100)
 		{
 
-		pre_time = millis();
-		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-
+			pre_time = millis();
+			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
 		}
 
