@@ -34,6 +34,8 @@ uint32_t millis(void)
   return HAL_GetTick();
 }
 
+
+
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};

@@ -19,6 +19,7 @@
 //#include "reset.h"
 #include "cli.h"
 #include "gpio.h"
+#include "sd.h"
 
 
 

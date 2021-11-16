@@ -23,6 +23,7 @@
 #define _USE_HW_USB
 #define _USE_HW_CLI
 #define _USE_HW_USB
+#define _USE_HW_SD
 
 #define _USE_HW_UART
 #define      HW_UART_MAX_CH         1
@@ -38,6 +39,8 @@
 
 #define _USE_HW_GPIO
 #define      HW_GPIO_MAX_CH  				1
+
+#define _PIN_GPIO_SDCARD_DETECT     0 // ch 0 : SD DC
 
 
 #endif /* SRC_HW_HW_DEF_H_ */

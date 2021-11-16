@@ -11,13 +11,19 @@
 void hwInit(void)
 {
 
-  bspInit();
+	bspInit();
 
-  ledInit();
-  usbInit();
+	cliInit();
+	ledInit();
 
-  buttonInit();
-  cliInit();
-  gpioInit();
+	usbInit();
+
+	uartInit();
+
+	buttonInit();
+
+	gpioInit();
+
+	sdInit();
 
 }
