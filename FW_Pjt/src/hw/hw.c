@@ -24,6 +24,9 @@ void hwInit(void)
 
 	gpioInit();
 
-	sdInit();
+	if (sdInit() == true)
+	{
+	  fatfsInit();
+	}
 
 }

@@ -23,8 +23,6 @@ static bool is_init = false;
 static bool is_detected = false;
 static volatile bool is_rx_done = false;
 static volatile bool is_tx_done = false;
-static uint8_t is_try = 0;
-static sd_state_t sd_state = SDCARD_IDLE;
 
 
 SD_HandleTypeDef hsd;
@@ -51,6 +49,7 @@ bool sdInit(void)
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
   hsd.Init.ClockDiv            = 0;
 
+  is_detected = false;
   is_detected = sdIsDetected();
 
   if (is_detected == true) // sd가 검출 될 때만 초기화//
@@ -98,7 +97,7 @@ bool sdDeInit(void)
 
   if (is_init == true)
   {
-    is_init = false;
+
     if (HAL_SD_DeInit(&hsd) == HAL_OK)
     {
       ret = true;
@@ -127,77 +126,6 @@ bool sdIsDetected(void)
   return is_detected;
 }
 
-sd_state_t sdUpdate(void)
-{
-  sd_state_t ret_state = SDCARD_IDLE;
-  static uint32_t pre_time;
-
-
-  switch(sd_state)
-  {
-    case SDCARD_IDLE:
-      if (sdIsDetected() == true)
-      {
-        if (is_init)
-        {
-          sd_state = SDCARD_CONNECTED;
-        }
-        else
-        {
-          sd_state = SDCARD_CONNECTTING;
-          pre_time = millis();
-        }
-      }
-      else
-      {
-        is_init = false;
-        sd_state  = SDCARD_DISCONNECTED;
-        ret_state = SDCARD_DISCONNECTED;
-      }
-      break;
-
-    case SDCARD_CONNECTTING:
-      if (millis()-pre_time >= 100)
-      {
-        if (sdReInit())
-        {
-          sd_state  = SDCARD_CONNECTED;
-          ret_state = SDCARD_CONNECTED;
-        }
-        else
-        {
-          sd_state = SDCARD_IDLE;
-          is_try++;
-
-          if (is_try >= 3)
-          {
-            sd_state = SDCARD_ERROR;
-          }
-        }
-      }
-      break;
-
-    case SDCARD_CONNECTED:
-      if (sdIsDetected() != true)
-      {
-        is_try = 0;
-        sd_state = SDCARD_IDLE;
-      }
-      break;
-
-    case SDCARD_DISCONNECTED:
-      if (sdIsDetected() == true)
-      {
-        sd_state = SDCARD_IDLE;
-      }
-      break;
-
-    case SDCARD_ERROR:
-      break;
-  }
-
-  return ret_state;
-}
 
 bool sdGetInfo(sd_info_t *p_info)
 {
@@ -265,7 +193,7 @@ bool sdReadBlocks(uint32_t block_addr, uint8_t *p_data, uint32_t num_of_blocks, 
   uint32_t pre_time;
 
 
-  if (is_init == false) return false;
+  //if (is_init == false) return false;
 
 
   is_rx_done = false; // read 하기 전에 초기화 //
@@ -300,7 +228,7 @@ bool sdWriteBlocks(uint32_t block_addr, uint8_t *p_data, uint32_t num_of_blocks,
   bool ret = false;
   uint32_t pre_time;
 
-  if (is_init == false) return false;
+//  if (is_init == false) return false;
 
 
   is_tx_done = false;
@@ -333,7 +261,7 @@ bool sdEraseBlocks(uint32_t start_addr, uint32_t end_addr)
 {
   bool ret = false;
 
-  if (is_init == false) return false;
+ // if (is_init == false) return false;
 
   if(HAL_SD_Erase(&hsd, start_addr, end_addr) == HAL_OK)
   {

@@ -18,21 +18,17 @@
   ******************************************************************************
 **/
 /* Includes ------------------------------------------------------------------*/
+/* Includes ------------------------------------------------------------------*/
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
+#include "sd.h"
 
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* use the default SD timout as defined in the platform BSP driver*/
-#if defined(SDMMC_DATATIMEOUT)
-#define SD_TIMEOUT SDMMC_DATATIMEOUT
-#elif defined(SD_DATATIMEOUT)
-#define SD_TIMEOUT SD_DATATIMEOUT
-#else
-#define SD_TIMEOUT 30 * 1000
-#endif
 
+#define SD_TIMEOUT            10 * 1000
 #define SD_DEFAULT_BLOCK_SIZE 512
 
 /*
@@ -76,11 +72,20 @@ const Diskio_drvTypeDef  SD_Driver =
 /* Private functions ---------------------------------------------------------*/
 static DSTATUS SD_CheckStatus(BYTE lun)
 {
-  Stat = STA_NOINIT;
+  Stat = 0;
 
-  if(BSP_SD_GetCardState() == MSD_OK)
+
+  if (sdIsInit() != true)
   {
-    Stat &= ~STA_NOINIT;
+    Stat |= STA_NOINIT;
+  }
+  if (sdIsDetected() != true)
+  {
+    Stat |= STA_NODISK;
+  }
+  if (sdIsReady(10) != true)
+  {
+    Stat |= STA_NOINIT;
   }
 
   return Stat;
@@ -93,17 +98,13 @@ static DSTATUS SD_CheckStatus(BYTE lun)
   */
 DSTATUS SD_initialize(BYTE lun)
 {
-  Stat = STA_NOINIT;
-#if !defined(DISABLE_SD_INIT)
+  Stat = 0;
 
-  if(BSP_SD_Init() == MSD_OK)
+  if (sdIsInit() != true)
   {
-    Stat = SD_CheckStatus(lun);
+    Stat |= STA_NOINIT;
   }
 
-#else
-  Stat = SD_CheckStatus(lun);
-#endif
   return Stat;
 }
 
@@ -129,14 +130,9 @@ DRESULT SD_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
 {
   DRESULT res = RES_ERROR;
 
-  if(BSP_SD_ReadBlocks((uint32_t*)buff,
-                       (uint32_t) (sector),
-                       count, SD_TIMEOUT) == MSD_OK)
+
+  if (sdReadBlocks(sector, buff, count, SD_TIMEOUT) == true)
   {
-    /* wait until the read operation is finished */
-    while(BSP_SD_GetCardState()!= MSD_OK)
-    {
-    }
     res = RES_OK;
   }
 
@@ -156,14 +152,8 @@ DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
 {
   DRESULT res = RES_ERROR;
 
-  if(BSP_SD_WriteBlocks((uint32_t*)buff,
-                        (uint32_t)(sector),
-                        count, SD_TIMEOUT) == MSD_OK)
+  if (sdWriteBlocks(sector, (uint8_t *)buff, count, SD_TIMEOUT) == true)
   {
-	/* wait until the Write operation is finished */
-    while(BSP_SD_GetCardState() != MSD_OK)
-    {
-    }
     res = RES_OK;
   }
 
@@ -182,7 +172,7 @@ DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
 DRESULT SD_ioctl(BYTE lun, BYTE cmd, void *buff)
 {
   DRESULT res = RES_ERROR;
-  BSP_SD_CardInfo CardInfo;
+  sd_info_t sd_info;
 
   if (Stat & STA_NOINIT) return RES_NOTRDY;
 
@@ -195,23 +185,23 @@ DRESULT SD_ioctl(BYTE lun, BYTE cmd, void *buff)
 
   /* Get number of sectors on the disk (DWORD) */
   case GET_SECTOR_COUNT :
-    BSP_SD_GetCardInfo(&CardInfo);
-    *(DWORD*)buff = CardInfo.LogBlockNbr;
+    sdGetInfo(&sd_info);
+    *(DWORD*)buff = sd_info.log_block_numbers;
     res = RES_OK;
     break;
 
   /* Get R/W sector size (WORD) */
   case GET_SECTOR_SIZE :
-    BSP_SD_GetCardInfo(&CardInfo);
-    *(WORD*)buff = CardInfo.LogBlockSize;
+    sdGetInfo(&sd_info);
+    *(WORD*)buff = sd_info.log_block_size;
     res = RES_OK;
     break;
 
   /* Get erase block size in unit of sector (DWORD) */
   case GET_BLOCK_SIZE :
-    BSP_SD_GetCardInfo(&CardInfo);
-    *(DWORD*)buff = CardInfo.LogBlockSize / SD_DEFAULT_BLOCK_SIZE;
-	res = RES_OK;
+    sdGetInfo(&sd_info);
+    *(DWORD*)buff = sd_info.log_block_size / SD_DEFAULT_BLOCK_SIZE;
+    res = RES_OK;
     break;
 
   default:

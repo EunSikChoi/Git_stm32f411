@@ -17,14 +17,6 @@
 #ifdef _USE_HW_SD
 
 
-typedef enum
-{
-  SDCARD_IDLE,
-  SDCARD_CONNECTTING,
-  SDCARD_CONNECTED,
-  SDCARD_DISCONNECTED,
-  SDCARD_ERROR
-} sd_state_t;
 
 
 typedef struct
@@ -42,7 +34,6 @@ typedef struct
 
 
 bool sdInit(void);        // sd 초기화 함수
-bool sdReInit(void);      // sd 재 삽입시 초기화 함수
 bool sdDeInit(void);      // sd 초기화 해제 함수
 bool sdIsInit(void);      // sd 초기화 중
 bool sdIsDetected(void);  // sd 카드 삽입 상태 확인 함수
@@ -50,7 +41,7 @@ bool sdGetInfo(sd_info_t *p_info); // sd 정보 GET 함수
 bool sdIsBusy(void);               // sd 현재 전송 진행 확인 함수
 bool sdIsReady(uint32_t timeout);  // sd 현재 전송 종료 확인 함수
 
-sd_state_t sdUpdate(void);  // sd 삽입 여부 확인 하는 함수
+
 
 bool sdReadBlocks(uint32_t block_addr, uint8_t *p_data, uint32_t num_of_blocks, uint32_t timeout_ms);  // sd 메모리 Read 함수
 bool sdWriteBlocks(uint32_t block_addr, uint8_t *p_data, uint32_t num_of_blocks, uint32_t timeout_ms); // sd 메모리 write 함수
