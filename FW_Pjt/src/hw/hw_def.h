@@ -24,6 +24,7 @@
 #define _USE_HW_CLI
 #define _USE_HW_USB
 #define _USE_HW_SD
+#define _USE_HW_FATFS
 
 #define _USE_HW_UART
 #define      HW_UART_MAX_CH         1
