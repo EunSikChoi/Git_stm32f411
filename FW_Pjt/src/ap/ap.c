@@ -22,7 +22,7 @@ void apMain(void)
 
 	while(1)
 	{
-		if(millis()-pre_time >= 100)
+		if(millis()-pre_time >= 100) //
 		{
 
 			pre_time = millis();

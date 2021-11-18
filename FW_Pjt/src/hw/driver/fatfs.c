@@ -14,10 +14,12 @@
 #ifdef _USE_HW_FATFS
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
+#include "button.h"
 
 
 
 static bool is_init = false;
+static uint32_t res, number;
 
 FATFS SDFatFs;  /* File system object for SD card logical drive */
 char SDPath[4]; /* SD card logical drive path */
@@ -31,9 +33,10 @@ bool fatfsInit(void)
 {
   bool ret = true;
 
-
+   /*##-1- Link the micro SD disk I/O driver ##################################*/
   if(FATFS_LinkDriver(&SD_Driver, SDPath) == 0)
   {
+  	/*##-2- Register the file system object to the FatFs module ##############*/
     if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) == FR_OK)
     {
       is_init = true;
@@ -119,13 +122,7 @@ void cliFatfs(cli_args_t *args)
   {
     FRESULT res;
 
-
-   // cliPrintf(" test : %s\n", kkk);
-
-
-
     res = fatfsDir("/"); // CES 폴더 안에 있는 파일 출력 // ces 폴더 있어야함 //
-
 
     res = fatfsDir("ces"); // 루트 디렉토리에 있는  파일 출력 //
 
@@ -145,24 +142,24 @@ void cliFatfs(cli_args_t *args)
     FIL log_file;
     uint32_t pre_time;
 
-
     pre_time = millis();
+
+    cliPrintf("Button  : %d \n", buttonGetPressed(0));
+
+    /*##-4- Create and Open a new text file object with write access #####*/
     fp_ret = f_open(&log_file, "1.csv", FA_CREATE_ALWAYS | FA_WRITE | FA_READ); // 파일 생성 // 이름 1.csv //
     if (fp_ret == FR_OK)
     {
-      f_printf(&log_file, "test1, ");
-      f_printf(&log_file, "test2, ");
-      f_printf(&log_file, "test3, ");
-      f_printf(&log_file, ", ");
-      f_printf(&log_file, "\n");
-
-      for (int i=0; i<8; i++)
-      {
-        f_printf(&log_file, "%d \n", i);
-      }
+    	for(int i = 0 ; i < 5 ; i++)
+    	{
+				f_printf(&log_file, "Alram %02d  , " , i);
+				f_printf(&log_file, "Time  %s, " , __TIME__);
+				f_printf(&log_file, "code  %s, " , __DATE__);
+				f_printf(&log_file, ", ");
+				f_printf(&log_file, "\n");
+    	}
 
       f_rewind(&log_file); // 생성한 파일 가져오기 //
-
 
       UINT len;
       uint8_t data;
@@ -170,6 +167,9 @@ void cliFatfs(cli_args_t *args)
       while(cliKeepLoop())  // 생성한 파일 출력
       {
         len = 0;
+
+
+        /*##-8- Read data from the text file ###########################*/
         fp_ret = f_read (&log_file, &data, 1, &len); // 1BYTE씩 READ //
 
         if (fp_ret != FR_OK)
@@ -184,6 +184,7 @@ void cliFatfs(cli_args_t *args)
         cliPrintf("%c", data);
       }
 
+      /*##-9- Close the open text file #############################*/
       f_close(&log_file);
     }
     else
@@ -195,11 +196,106 @@ void cliFatfs(cli_args_t *args)
     ret = true;
   }
 
+  if (args->argc == 1 && args->isStr(0, "event") == true)
+    {
+
+      FRESULT fp_ret;
+      FIL log_file;
+
+      DIR dir;
+      FILINFO fno;
+
+      uint32_t pre_time;
+
+
+      pre_time = millis();
+
+      cliPrintf("Button  : %d \n", buttonGetPressed(0));
+
+      if (buttonGetPressed(0) == 0) // if press key button , save event // 1 : button press // 0 not press //
+      {
+
+      	f_findfirst(&dir,&fno,"","event.csv");             // search file name //
+      	cliPrintf("finded file name : %s\r\n", fno.fname); // Display the object name
+
+      	if (strcmp( fno.fname, "event.csv") == 0)          // compare string // 0 = same // 1 = not file //
+      	{
+      		/*##-4- Create and Open a new text file object with write access #####*/
+					fp_ret = f_open(&log_file, "event.csv", FA_OPEN_EXISTING | FA_WRITE | FA_READ); // if exist file  , open file
+					cliPrintf("existing file...\n");
+
+					res = f_size(&log_file);  // check where is end of file //
+					number = res / 53; 			  // 1 line 53byte  ( size / 53 ) == index //
+      	}
+      	else
+      	{
+      		/*##-4- Create and Open a new text file object with write access #####*/
+					fp_ret = f_open(&log_file, "event.csv", FA_CREATE_ALWAYS | FA_WRITE | FA_READ); // if not exist file, make file
+					cliPrintf("make file...\n");
+      	}
+
+				if (fp_ret == FR_OK)
+				{
+
+					f_lseek(&log_file, res); // Move read/write pointer
+
+					f_printf(&log_file, "index %02d ," ,  number  );
+					f_printf(&log_file, "Toggle   ,"  );
+					f_printf(&log_file, "Time  %s ," , __TIME__);
+					f_printf(&log_file, "code  %s ," , __DATE__);
+					f_printf(&log_file, ","); //
+					f_printf(&log_file, "\n");
+
+					res = f_tell(&log_file); // Get current read/write pointer // not used
+					number++;
+
+					f_rewind(&log_file); // read make file //
+
+					UINT len;
+					uint8_t data;
+
+					while(cliKeepLoop())  // read & prinf to notebook
+					{
+						len = 0;
+
+						/*##-8- Read data from the text file ###########################*/
+						fp_ret = f_read (&log_file, &data, 1, &len); // 1BYTE READ //
+
+						if (fp_ret != FR_OK)
+						{
+							break;
+						}
+						if (len == 0)
+						{
+							break;
+						}
+
+						cliPrintf("%c", data);
+					}
+
+					/*##-9- Close the open text file #############################*/
+					f_close(&log_file);
+				}
+				else
+				{
+					cliPrintf("f_open fail\r\n");
+				}
+				cliPrintf("%d ms\r\n", millis()-pre_time);
+
+     }
+      else
+      {
+      	cliPrintf("Push Not Key Button \n");
+      }
+      ret = true;
+    }
+
   if (ret != true)
   {
     cliPrintf("fatfs info\n");
     cliPrintf("fatfs dir\n");
     cliPrintf("fatfs test\n");
+    cliPrintf("fatfs event\n");
   }
 }
 
