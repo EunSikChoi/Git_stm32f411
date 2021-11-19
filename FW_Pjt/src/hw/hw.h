@@ -21,7 +21,8 @@
 #include "gpio.h"
 #include "sd.h"
 #include "fatfs.h"
-
+#include "rtc.h"
+#include "reset.h"
 
 
 void hwInit(void);

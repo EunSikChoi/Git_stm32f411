@@ -26,6 +26,8 @@
 #define _USE_HW_SD
 #define _USE_HW_FATFS
 #define _USE_HW_FLASH
+#define _USE_HW_RTC
+#define _USE_HW_RESET
 
 #define _USE_HW_UART
 #define      HW_UART_MAX_CH         1
