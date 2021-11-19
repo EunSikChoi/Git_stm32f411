@@ -18,6 +18,8 @@ void hwInit(void)
 
 	usbInit();
 
+	flashInit();
+
 	uartInit();
 
 	buttonInit();
