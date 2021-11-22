@@ -16,6 +16,11 @@ void hwInit(void)
 	rtcInit();
 	resetInit();
 
+  if( resetGetCount() == 2)
+  {
+    resetToSysBoot(); //jump to system bootloader //
+  }
+
 	cliInit();
 	ledInit();
 
@@ -33,5 +38,6 @@ void hwInit(void)
 	{
 	  fatfsInit();
 	}
+
 
 }

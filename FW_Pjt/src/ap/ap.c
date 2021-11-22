@@ -28,7 +28,7 @@ void apMain(void)
 
 	while(1)
 	{
-		if(millis()-pre_time >= led_blink_time) //
+		if(millis()-pre_time >= led_blink_time)
 		{
 
 			pre_time = millis();
