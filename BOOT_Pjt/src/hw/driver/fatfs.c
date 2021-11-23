@@ -24,6 +24,8 @@ static uint32_t res, number;
 FATFS SDFatFs;  /* File system object for SD card logical drive */
 char SDPath[4]; /* SD card logical drive path */
 
+int32_t getFileSize(char *file_name);
+FIL log_file;
 
 #ifdef _USE_HW_CLI
 static void cliFatfs(cli_args_t *args);
@@ -290,17 +292,71 @@ void cliFatfs(cli_args_t *args)
       ret = true;
     }
 
+  if (args->argc == 2 && args->isStr(0, "boot") == true)
+  {
+  	FRESULT res;
+    FRESULT fp_ret;
+    FILE     *fp;
+
+    uint32_t pre_time;
+    uint32_t exe_time;
+
+    uint32_t file_addr;
+    char     file_name[256];
+    int32_t  file_size;
+    uint8_t err_code;
+
+    //-- Set Flash Write Addr --//
+    file_addr = 0x08010000;
+    cliPrintf("file addr : 0x%X\n", file_addr);
+
+    //-- Get Name Cli cmd 2, User input name  using cli cmd --//
+    strcpy(file_name, args->argv[1]);
+    cliPrintf("file name : %s\n", file_name);
+
+    //-- Get File Size --//
+    file_size = getFileSize(file_name);
+    if (file_size <= 0)
+    {
+    	cliPrintf("file size error\n");
+    }
+    cliPrintf("file size : %d bytes\n", file_size);
+
+
+
+    ret = true;
+  }
+
   if (ret != true)
   {
     cliPrintf("fatfs info\n");
     cliPrintf("fatfs dir\n");
     cliPrintf("fatfs test\n");
     cliPrintf("fatfs event\n");
+    cliPrintf("fatfs boot\n");
   }
 }
 
 #endif
 
+int32_t getFileSize(char *file_name)
+{
+  int32_t ret = -1;
+ //FIL log_file;
+
+  if (f_open(&log_file, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ)    ) // if exist file  , open file
+  {
+  	cliPrintf("false open file\n");
+    return -1;
+  }
+  else
+  {
+  	ret = f_size(&log_file);  // check where is end of file //
+  	f_close(&log_file);
+  }
+
+  return ret;
+}
 
 
 #endif
