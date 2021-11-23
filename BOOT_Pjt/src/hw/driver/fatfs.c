@@ -15,11 +15,12 @@
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
 #include "button.h"
-
+#include "flash.h"
 
 
 static bool is_init = false;
 static uint32_t res, number;
+#define WRITE_BLOCK_LENGTH     512
 
 FATFS SDFatFs;  /* File system object for SD card logical drive */
 char SDPath[4]; /* SD card logical drive path */
@@ -295,8 +296,9 @@ void cliFatfs(cli_args_t *args)
   if (args->argc == 2 && args->isStr(0, "boot") == true)
   {
   	FRESULT res;
-    FRESULT fp_ret;
-    FILE     *fp;
+
+    DIR dir;
+    FILINFO fno;
 
     uint32_t pre_time;
     uint32_t exe_time;
@@ -304,25 +306,136 @@ void cliFatfs(cli_args_t *args)
     uint32_t file_addr;
     char     file_name[256];
     int32_t  file_size;
-    uint8_t err_code;
+    uint8_t  err_code;
+    bool     get_size_done = true;
+    bool     write_done 	 = false;
 
-    //-- Set Flash Write Addr --//
+    //-- Set Flash Write Addr
+    //
     file_addr = 0x08010000;
-    cliPrintf("file addr : 0x%X\n", file_addr);
+    cliPrintf("file addr \t: 0x%X\n", file_addr);
 
     //-- Get Name Cli cmd 2, User input name  using cli cmd --//
+    //
     strcpy(file_name, args->argv[1]);
-    cliPrintf("file name : %s\n", file_name);
+    cliPrintf("file name \t: %s\n", file_name);
 
-    //-- Get File Size --//
+    //-- Check File name
+    //
+    f_findfirst(&dir,&fno,"",file_name);             // search file name //
+
+    if (strcmp( fno.fname, file_name) != 0)          // compare string // 0 = same // 1 = not file //
+    {
+    	cliPrintf("file name error\n");
+    }
+
+    //-- Get File Size
+    //
     file_size = getFileSize(file_name);
     if (file_size <= 0)
     {
     	cliPrintf("file size error\n");
+    	get_size_done = false;
     }
-    cliPrintf("file size : %d bytes\n", file_size);
+    cliPrintf("file size \t: %d bytes\n", file_size);
 
+    if(get_size_done == true)
+    {
 
+			 //-- Flash Erase
+			 //
+			 cliPrintf("flash erase \t: ");
+			 pre_time = millis();
+			 err_code = flashErase(file_addr, file_size);
+			 exe_time = millis()-pre_time;
+
+			 if (err_code != true)
+			 {
+				 cliPrintf("\nbootCmdFlashErase fail : %d\n", err_code);
+			 }
+
+			 cliPrintf("OK (%dms)\n", exe_time);
+
+			 //-- Flash Write
+			 //
+			 if( (f_open(&log_file, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ)) !=  FR_OK )    // if exist file  , open file
+			 {
+				 cliPrintf("unable open file\n");
+			 }
+
+			 uint32_t addr;
+			 uint16_t write_percent;
+			 uint16_t pre_percent = 0;
+
+			 UINT len;
+			 uint8_t data[WRITE_BLOCK_LENGTH];
+
+			 addr = file_addr;
+			 //file_addr : flash Write 시작주소
+			 //addr  : 다음 루프에 써야할 Flash 주소
+
+			 pre_time = millis();
+
+			 while(1)
+			 {
+				 if(!f_eof(&log_file))
+				 {
+					 //fp_ret = f_read (&log_file, &data, 1, &len); 						// 1BYTE READ //  ( 읽을 파일 주소 , 저장할 버퍼 , 한번에 읽을 갯수 , 읽은 갯수 정보가 저장될 변수 주소 )
+					 res = f_read (&log_file, data, WRITE_BLOCK_LENGTH, &len);  // 512BYTE READ //
+
+					 flashWrite(addr, data, len); 															// 512바이트 크기를 Write // feof 종료시까지 //
+
+					 addr += len; // next Write addr //
+
+					 write_percent = (addr-file_addr) * 100 / file_size; 				// (8100 - 8100)*100 /  400 = 0% , (8500 - 8100)*100 / 400 = 100%
+
+					 if ((write_percent/10) != pre_percent)
+					 {
+						 cliPrintf("flash write \t: %d%%\r", write_percent);
+						 pre_percent = (write_percent/10);
+					 }
+
+					// cliPrintf("len : %x \n", len);
+					// cliPrintf("add : %x \n", addr);
+					// cliPrintf("READ file : %s \n", data);
+
+					 if ((addr-file_addr) >= file_size)// 써야할 주소 - 시작주소  의미는  현재까지 쓴 데이터의 크기 의미 즉 파일크기와 현재까지 쓴 크기가 같으면 전체 Write END//
+					 {
+							write_done = true; // Flash Write END //
+							break;
+					 }
+
+					 if ((res != FR_OK ) || (len == 0))
+					 {
+							break;
+					 }
+				 }
+			 }
+    }
+
+		/*##-9- Close the open text file #############################*/
+		f_close(&log_file);
+
+		if( write_done == true)
+		{
+			 void (**jump_func)() = (void (**)())(0x8010000 + 4);
+
+			 if ((uint32_t)(*jump_func) != 0xFFFFFFFF)
+			 {
+				 HAL_RCC_DeInit();
+				 HAL_DeInit();
+
+				 for (int i=0; i<8; i++)
+				 {
+					 NVIC->ICER[i] = 0xFFFFFFFF;
+					 __DSB();
+					 __ISB();
+				 }
+				 SysTick->CTRL = 0;
+
+				 (*jump_func)();
+			 }
+		}
 
     ret = true;
   }
