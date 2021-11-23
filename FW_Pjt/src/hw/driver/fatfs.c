@@ -10,20 +10,23 @@
 
 #include "fatfs.h"
 #include "cli.h"
+#include "flash.h"
 
 #ifdef _USE_HW_FATFS
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
 #include "button.h"
 
-
+#define TX_BLOCK_LENGTH     512
 
 static bool is_init = false;
 static uint32_t res, number;
+int32_t getFileSize(char *file_name);
 
 FATFS SDFatFs;  /* File system object for SD card logical drive */
 char SDPath[4]; /* SD card logical drive path */
 
+FIL log_file;
 
 #ifdef _USE_HW_CLI
 static void cliFatfs(cli_args_t *args);
@@ -196,7 +199,7 @@ void cliFatfs(cli_args_t *args)
     ret = true;
   }
 
-  if (args->argc == 1 && args->isStr(0, "event") == true)
+  	if (args->argc == 1 && args->isStr(0, "event") == true)
     {
 
       FRESULT fp_ret;
@@ -290,17 +293,196 @@ void cliFatfs(cli_args_t *args)
       ret = true;
     }
 
+  //	extern bool flashErase(uint32_t addr, uint32_t length);
+
+    if (args->argc == 2 && args->isStr(0, "boot") == true)
+    {
+
+    	 FRESULT res;
+   // 	 FIL log_file;
+       FRESULT fp_ret;
+       FILE     *fp;
+
+    	 uint32_t pre_time;
+    	 uint32_t exe_time;
+
+    	 uint32_t file_addr;
+    	 char     file_name[256];
+    	 int32_t  file_size;
+    	 uint8_t err_code;
+
+
+
+    	 file_addr = 0x08044000;
+    	 cliPrintf("file addr : 0x%X\n", file_addr);
+
+    	 strcpy(file_name, args->argv[1]);  // 문자열 복사 //
+    	 cliPrintf("file name : %s\n", file_name);
+
+    	 file_size = getFileSize(file_name);
+    	 if (file_size <= 0)
+    	 {
+    		 cliPrintf("file size error\n");
+    	 }
+    	 cliPrintf("file size : %d bytes\n", file_size);
+
+
+    	 //-- Flash Erase
+    	     //
+			 cliPrintf("flash erase \t: ");
+			 pre_time = millis();
+			 //err_code = bootCmdFlashErase(0x08010000, 1024*64, 5000); // (file_addr, file_size, 5000);
+			 err_code = flashErase(file_addr, 1); //file_size
+			 exe_time = millis()-pre_time;
+
+			 if (err_code != true)
+			 {
+				 cliPrintf("\nbootCmdFlashErase fail : %d\n", err_code);
+			 }
+
+			 cliPrintf("OK (%dms)\n", exe_time);
+
+
+			 //-- Flash Write
+			 //
+			  if( (f_open(&log_file, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ)) !=  FR_OK )    // if exist file  , open file
+			  {
+			  	cliPrintf("unable open file\n");
+			  }
+
+			 uint32_t addr;
+			 //uint32_t len;
+			 bool     write_done = false;
+			 uint8_t  tx_buf[TX_BLOCK_LENGTH];
+			 uint16_t write_percent;
+			 uint16_t pre_percent = 0;
+			 UINT testBytes;
+
+    	 UINT len;
+			 uint8_t data[512];
+
+			 addr = file_addr;
+			 //file_addr : flash Write 시작주소
+			 //addr  : 다음 루프에 써야할 Flash 주소
+			 pre_time = millis();
+
+			 while(1)
+			 {
+				 if(!f_eof(&log_file))
+				 {
+					// len = f_read(&log_file, tx_buf, 1, &testBytes); // tx_buf : 파일에서 읽어 저장할 위치 , size(몇개씩), 길이 , 읽을 파일 포인터)
+
+					 //fp_ret = f_read (&log_file, &data, 1, &len); // 1BYTE READ //
+					 fp_ret = f_read (&log_file, data, 512, &len); // 1BYTE READ //
+
+					 flashWrite(addr, data, len); // 256바이트 크기를 Write // feof 종료시까지 //
+
+					 // len = f_read(tx_buf, 1, TX_BLOCK_LENGTH, fp); // tx_buf : 파일에서 읽어 저장할 위치 , size(몇개씩), 길이 , 읽을 파일 포인터)
+
+					 addr += len; // 다음 Write 할 주소 저장 //
+
+
+					 write_percent = (addr-file_addr) * 100 / file_size; // (8100 - 8100)*100 /  400 = 0% , (8500 - 8100)*100 / 400 = 100%
+
+					 if ((write_percent/10) != pre_percent)
+					 {
+						 cliPrintf("flash write \t: %d%%\r", write_percent);
+						 pre_percent = (write_percent/10);
+					 }
+
+
+					 cliPrintf("len : %x \n", len);
+					 cliPrintf("add : %x \n", addr);
+
+					// cliPrintf("READ file : %s \n", data);
+
+	         if ((addr-file_addr) >= file_size)// 써야할 주소 - 시작주소  의미는  현재까지 쓴 데이터의 크기 의미 즉 파일크기와 현재까지 쓴 크기가 같으면 전체 Write END//
+	          {
+	            write_done = true; // Flash Write 종료 //
+	            break;
+	          }
+
+	         if (fp_ret != FR_OK)
+						{
+							break;
+						}
+						if (len == 0)
+						{
+							break;
+						}
+
+
+				 }
+
+
+			 }
+
+			// err_code = flashWrite(addr, tx_buf, len, 1000); // 256바이트 크기를 Write // feof 종료시까지 //
+
+
+				/*##-9- Close the open text file #############################*/
+			f_close(&log_file);
+
+//			 void (**jump_func)() = (void (**)())(0x8010000 + 4);
+//
+//			 if ((uint32_t)(*jump_func) != 0xFFFFFFFF)
+//			 {
+//				 HAL_RCC_DeInit();
+//				 HAL_DeInit();
+//
+//				 for (int i=0; i<8; i++)
+//				 {
+//					 NVIC->ICER[i] = 0xFFFFFFFF;
+//					 __DSB();
+//					 __ISB();
+//				 }
+//				 SysTick->CTRL = 0;
+//
+//				 (*jump_func)();
+//			 }
+
+
+
+
+      if (res != FR_OK)
+      {
+        cliPrintf(" err : %d\n", res);
+      }
+
+      ret = true;
+    }
+
   if (ret != true)
   {
     cliPrintf("fatfs info\n");
     cliPrintf("fatfs dir\n");
     cliPrintf("fatfs test\n");
     cliPrintf("fatfs event\n");
+    cliPrintf("fatfs boot\n");
   }
 }
 
 #endif
 
+
+int32_t getFileSize(char *file_name)
+{
+  int32_t ret = -1;
+ //FIL log_file;
+
+  if (f_open(&log_file, file_name, FA_OPEN_EXISTING | FA_WRITE | FA_READ)    ) // if exist file  , open file
+  {
+  	cliPrintf("false open file\n");
+    return -1;
+  }
+  else
+  {
+  	ret = f_size(&log_file);  // check where is end of file //
+  	f_close(&log_file);
+  }
+
+  return ret;
+}
 
 
 #endif

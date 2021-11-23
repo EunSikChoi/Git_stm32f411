@@ -10,7 +10,8 @@
 #include "flash.h"
 #include "cli.h"
 
-#define FLASH_SECTOR_MAX     8
+#define FLASH_SECTOR_MAX        4
+#define FLASH_SECTOR_OFFSET     4
 
 typedef struct
 {
@@ -20,10 +21,10 @@ typedef struct
 
 static flash_tbl_t flash_tbl[FLASH_SECTOR_MAX] =
 {
-		{ 0x08000000, 16*1024},
-		{ 0x08004000, 16*1024},
-		{ 0x08008000, 16*1024},
-		{ 0x0800C000, 16*1024},
+//		{ 0x08000000, 16*1024},
+//		{ 0x08004000, 16*1024},
+//		{ 0x08008000, 16*1024},
+//		{ 0x0800C000, 16*1024},
 		{ 0x08010000, 64*1024},
     { 0x08020000, 128*1024},
     { 0x08044000, 128*1024},
@@ -67,8 +68,8 @@ bool flashErase(uint32_t addr, uint32_t length)
     {
       if (start_sector_num < 0) //flashInSector() 조건 만족시 1번만 진입. 시작 섹터 주소 저장 //
       {
-        start_sector_num = i;
-       // cliPrintf("sector NUM %d : \n", start_sector_num);
+        start_sector_num = i +FLASH_SECTOR_OFFSET ;
+        //cliPrintf("sector NUM %d : \n", start_sector_num);
       }
       sector_count++; // flashInSector() 조건 만족시 매번 ++1 수행. 결국 지워야할 섹터 갯수 정보임  //
     }
@@ -82,7 +83,7 @@ bool flashErase(uint32_t addr, uint32_t length)
 
     init.TypeErase   	= FLASH_TYPEERASE_SECTORS;
     init.Banks       	= FLASH_BANK_1;
-    init.Sector		 		= start_sector_num ;		  // 기존은 주소였는데 Sector로 변경
+    init.Sector		 		= start_sector_num;//start_sector_num ;		  // 기존은 주소였는데 Sector로 변경
     init.NbSectors    = sector_count;
     init.VoltageRange	= FLASH_VOLTAGE_RANGE_3;  // 전원 범위 선택
 

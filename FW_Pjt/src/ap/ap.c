@@ -33,7 +33,7 @@ void apMain(void)
 
 			pre_time = millis();
 			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-			uartPrintf(_DEF_UART1, "reset Count %d\n", resetGetCount());
+			//uartPrintf(_DEF_UART1, "test ok \n");//
 
 		}
 
