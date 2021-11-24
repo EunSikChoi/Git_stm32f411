@@ -17,7 +17,7 @@ void apInit(void)
 void apMain(void)
 {
   uint32_t pre_time;
-  uint32_t led_blink_time = 2000;
+  uint32_t led_blink_time = 1000;
   pre_time = millis();
 
   if(resetGetCount() >= 2)
