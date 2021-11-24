@@ -42,9 +42,12 @@
 #define      HW_BUTTON_CH           1
 
 #define _USE_HW_GPIO
-#define      HW_GPIO_MAX_CH  				1
+#define      HW_GPIO_MAX_CH  				2
 
 #define _PIN_GPIO_SDCARD_DETECT     0 // ch 0 : SD DC
+
+#define _USE_HW_SPI
+#define      HW_SPI_MAX_CH    1  //1: Wiz5500 //
 
 #define FLASH_USER_START_ADDR (uint32_t)0x0800EFEA
 #define FLASH_USER_LENGTH 32

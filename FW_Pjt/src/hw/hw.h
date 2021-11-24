@@ -23,6 +23,7 @@
 #include "fatfs.h"
 #include "rtc.h"
 #include "reset.h"
+#include "spi.h"
 
 
 void hwInit(void);

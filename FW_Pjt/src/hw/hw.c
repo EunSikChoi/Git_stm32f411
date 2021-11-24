@@ -34,4 +34,8 @@ void hwInit(void)
 	  fatfsInit();
 	}
 
+	spiInit();
+
+	spiBegin(_DEF_SPI1); // 나중에 w5500이로 이동
+
 }
