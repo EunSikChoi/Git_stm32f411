@@ -24,6 +24,8 @@
 #include "rtc.h"
 #include "reset.h"
 #include "spi.h"
+#include "socket.h"
+#include "modbus.h"
 
 
 void hwInit(void);

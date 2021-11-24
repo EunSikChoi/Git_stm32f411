@@ -108,6 +108,14 @@
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/lib/FatFs/src}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/hw/driver/fatfs}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/hw/driver/tcp_ip/application}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/hw/driver/tcp_ip/protocol}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/hw/driver/tcp_ip/w5500}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/hw/driver/tcp_ip}&quot;"/>
                                     								
                                 </option>
                                 								
@@ -161,7 +169,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="src/lib/cube_f411/USB_DEVICE|src/lib/cube_f411/Middlewares|src/lib/FatFs/src/option/ccsbcs.c|src/lib/FatFs/src/option/cc950.c|src/lib/FatFs/src/option/cc949.c|src/lib/FatFs/src/option/cc936.c|src/lib/FatFs/src/option/cc932.c|src/lib/FatFs/src/drivers|src/lib/cube_f411/Core/Startup|src/lib/cube_f411/Core/Src|src/lib/cube_f411/Core/Inc|ap.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/lib/FatFs/src/option/cc949.c|src/lib/cube_f411/Core/Startup|src/lib/cube_f411/Core/Inc|src/lib/FatFs/src/option/cc950.c|src/lib/FatFs/src/option/cc932.c|src/lib/FatFs/src/drivers|src/lib/cube_f411/Core/Src|src/lib/FatFs/src/option/cc936.c|src/lib/cube_f411/USB_DEVICE|src/lib/cube_f411/Middlewares|ap.c|src/lib/FatFs/src/option/ccsbcs.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                         					
                     </sourceEntries>
                     				
@@ -303,7 +311,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="src/lib/cube_f411/USB_DEVICE|src/lib/cube_f411/Middlewares|src/lib/FatFs/src/option/ccsbcs.c|src/lib/FatFs/src/option/cc950.c|src/lib/FatFs/src/option/cc949.c|src/lib/FatFs/src/option/cc936.c|src/lib/FatFs/src/option/cc932.c|src/lib/FatFs/src/drivers|src/lib/cube_f411/Core/Startup|src/lib/cube_f411/Core/Src|src/lib/cube_f411/Core/Inc|ap.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/lib/FatFs/src/option/cc949.c|src/lib/cube_f411/Core/Startup|src/lib/cube_f411/Core/Inc|src/lib/FatFs/src/option/cc950.c|src/lib/FatFs/src/option/cc932.c|src/lib/FatFs/src/drivers|src/lib/cube_f411/Core/Src|src/lib/FatFs/src/option/cc936.c|src/lib/cube_f411/USB_DEVICE|src/lib/cube_f411/Middlewares|ap.c|src/lib/FatFs/src/option/ccsbcs.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                         					
                     </sourceEntries>
                     				

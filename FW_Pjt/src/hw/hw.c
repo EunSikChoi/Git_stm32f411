@@ -35,7 +35,11 @@ void hwInit(void)
 	}
 
 	spiInit();
+  //spiBegin(_DEF_SPI1); // 나중에 w5500이로 이동
 
-	spiBegin(_DEF_SPI1); // 나중에 w5500이로 이동
+ 	W5500_hw_Rst();
+	W5500_init();
+
+
 
 }

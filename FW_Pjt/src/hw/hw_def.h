@@ -52,5 +52,6 @@
 #define FLASH_USER_START_ADDR (uint32_t)0x0800EFEA
 #define FLASH_USER_LENGTH 32
 
+#define _USE_HW_W5500
 
 #endif /* SRC_HW_HW_DEF_H_ */
