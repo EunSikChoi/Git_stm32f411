@@ -43,7 +43,6 @@ void apMain(void)
   uint32_t pre_time;
   uint32_t led_blink_time = 1000;
 
-  uint8_t buf[0];
 
   pre_time = millis();
 
@@ -58,31 +57,25 @@ void apMain(void)
 		if(millis()-pre_time >= led_blink_time) //
 		{
 
-			buf[0] = 0x02;
-
 			pre_time = millis();
 			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
-      gpioPinWrite(1, _DEF_LOW);
-			spiDmaTxStart(spi_ch1, buf, 1);
-      gpioPinWrite(1, _DEF_HIGH);
-
 		}
 
-//	#ifdef _USE_HW_W5500
-//		uint8_t loopback_Cnt;
-//
-//		 if( loopback_Cnt++ > 4)
-//		 {
-//			 loopback_Cnt = 0;
-//			uint8_t buffer[256]= {0,};
-//
-//			 for(uint8_t index = 0; index < 4; index++)
-//			 {
-//					loopback_tcps(index ,buffer,502);
-//			 }
-//		 }
-//	#endif
+	#ifdef _USE_HW_W5500
+		uint8_t loopback_Cnt;
+
+		 if( loopback_Cnt++ > 4)
+		 {
+			 loopback_Cnt = 0;
+			uint8_t buffer[256]= {0,};
+
+			 for(uint8_t index = 0; index < 4; index++)
+			 {
+					loopback_tcps(index ,buffer,502);
+			 }
+		 }
+	#endif
 
 		cliMain();
 
