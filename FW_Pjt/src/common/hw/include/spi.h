@@ -36,9 +36,9 @@ bool     spiTransfer(uint8_t ch, uint8_t *tx_buf, uint8_t *rx_buf, uint32_t leng
 uint8_t  spiTransfer8(uint8_t ch, uint8_t data);
 uint16_t spiTransfer16(uint8_t ch, uint16_t data);
 
-//void spiDmaTxStart(uint8_t ch, uint8_t *p_buf, uint32_t length);
-//bool spiDmaTxTransfer(uint8_t ch, void *buf, uint32_t length, uint32_t timeout);
-//bool spiDmaTxIsDone(uint8_t ch);
+void spiDmaTxStart(uint8_t ch, uint8_t *p_buf, uint32_t length);
+bool spiDmaTxTransfer(uint8_t ch, void *buf, uint32_t length, uint32_t timeout);
+bool spiDmaTxIsDone(uint8_t ch);
 void spiAttachTxInterrupt(uint8_t ch, void (*func)());
 
 
