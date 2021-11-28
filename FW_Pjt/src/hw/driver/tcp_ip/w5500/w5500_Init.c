@@ -37,6 +37,7 @@ void W5500_dataSend(uint8_t Txdata) // SPI 데이터 송신
 {
 	 while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
 	 HAL_SPI_Transmit_DMA(&hspi1, (uint8_t *) &Txdata, 1);
+  // HAL_SPI_Transmit(&hspi1, (uint8_t *) &Txdata, 1, 10);
 }
 
 void W5500_CS_select()

@@ -108,7 +108,7 @@ int32_t loopback_tcps(uint8_t sn, uint8_t* buf, uint16_t port)
    uint16_t size = 0, sentsize=0;
 	uint16_t buf_idx = 0;
 	uint16_t buf_len = 0;
-	uint8_t echo_len = 0;
+	uint16_t echo_len = 0;
 
 #ifdef _LOOPBACK_DEBUG_
    uint8_t destip[4];
@@ -133,15 +133,14 @@ int32_t loopback_tcps(uint8_t sn, uint8_t* buf, uint16_t port)
    {
       case SOCK_ESTABLISHED :
 
-    	if(wEthErrCnt >= 10) { // 3sec동안 통신이 없는 경우
+    	if(wEthErrCnt >= 10)
+    	{ // 3sec동안 통신이 없는 경우
         	wEthErrCnt = 0;
-
         	socket(sn, Sn_MR_TCP, port, 0x00);  // wiz550io SOCK_CLOSED
+    	}
 
-		}
-
-         if(getSn_IR(sn) & Sn_IR_CON)
-         {
+		  if(getSn_IR(sn) & Sn_IR_CON)
+		  {
 #ifdef _LOOPBACK_DEBUG_
 			getSn_DIPR(sn, destip);
 			destport = getSn_DPORT(sn);
@@ -149,14 +148,14 @@ int32_t loopback_tcps(uint8_t sn, uint8_t* buf, uint16_t port)
 		   // Userprintf(UartTx1);
 
 #endif
-			setSn_IR(sn,Sn_IR_CON);
-         }
+				setSn_IR(sn,Sn_IR_CON);
+		  }
+
 		 if((size = getSn_RX_RSR(sn)) > 0) // Don't need to check SOCKERR_BUSY because it doesn't not occur.
-         {
-			 wEthErrCnt = 0; //JSJ
+		 {
+			 wEthErrCnt = 0;
 			 bTxTcpFrameSend = 0;
 			 bTxTcpFrameSize = 0;
-
 
 			if(size > DATA_BUF_SIZE) size = DATA_BUF_SIZE;
 
@@ -166,16 +165,18 @@ int32_t loopback_tcps(uint8_t sn, uint8_t* buf, uint16_t port)
 			{
 				buf_len = size - buf_idx;
 
-				if(buf_len > 10)
+				if(buf_len > 20)
 				{
-					buf_len = 10;
+					buf_len = 20;
 				}
 
-				if(echo_Flag == true) // only loop back //cli//
+				if(echo_Flag == true) // echo_Flag :1 loopback // 0: protocol //
 				{
-					ret = recv(sn, buf, size); // loopback
-					bTxTcpFrameSend =TRUE;     // loopback
-					bTxTcpFrameSize = size;    // loopback
+
+					ret = recv(sn, buf+buf_idx, buf_len);
+
+					bTxTcpFrameSend = TRUE;
+					bTxTcpFrameSize = size;
 					echo_len = size;
 				}
 				else
@@ -183,15 +184,16 @@ int32_t loopback_tcps(uint8_t sn, uint8_t* buf, uint16_t port)
 					ret = recv(sn, buf+buf_idx, buf_len); //TCP/IP
 				}
 
-
-				if(ret <= 0) return ret;      // check SOCKERR_BUSY & SOCKERR_XXX. For showing the occurrence of SOCKERR_BUSY.
+				if(ret <= 0) return ret; // check SOCKERR_BUSY & SOCKERR_XXX. For showing the occurrence of SOCKERR_BUSY.
 				buf_idx += buf_len;
-
 			}
 
 		}
 
-			RTUtcpLoop(buf, size, gEthSendBuf);
+		 if(echo_Flag == false) // echo_Flag :1 loopback // 0: protocol //
+		 {
+			 RTUtcpLoop(buf, size, gEthSendBuf);
+   	 }
 
 
 		if((bTxTcpFrameSend == 1) && (bTxTcpFrameSize > 0))
@@ -201,27 +203,16 @@ int32_t loopback_tcps(uint8_t sn, uint8_t* buf, uint16_t port)
 			while(size != sentsize)
 			{
 				buf_len = size - sentsize;
-				if(buf_len  > 10)
-					buf_len = 10;
 
+				if(buf_len  > 20) buf_len = 20;
 
-				if(echo_Flag == true) // loopback //cli
+				if(echo_Flag == true) // echo_Flag :1 loopback // 0: protocol //
 				{
-
-					ret = send(sn, buf+sentsize, echo_len);// loopback
-
-				    for (int i=0; i<echo_len; i++)
-					{
-					   cliPrintf("%02X ", buf[i] );
-					}
-					cliPrintf("\n");
-					cliPrintf("W5500 Send OK\n");
-					 break;
-
+					ret = send(sn, buf+sentsize, buf_len); //loopback
 				}
 				else
 				{
-					ret = send(sn, gEthSendBuf+sentsize, buf_len); //For Modbus TCP/IP
+					ret = send(sn, gEthSendBuf+sentsize, buf_len); //Modbus
 				}
 
 				if(ret < 0)
@@ -531,10 +522,12 @@ void cliW5500(cli_args_t *args)
   	if (value != 0)
   	{
   		echo_Flag = true; //loopback
+  		cliPrintf("W5500 looback mode \n");
   	}
   	else
   	{
   		echo_Flag = false; //Modbus protocol
+  		cliPrintf("W5500 Modbus mode \n");
   	}
 
   	ret = true;
