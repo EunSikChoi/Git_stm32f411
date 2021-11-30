@@ -41,4 +41,7 @@
 #define _DEF_SPI3             2
 #define _DEF_SPI4             3
 
+#define _485_TX_ENB  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1,  GPIO_PIN_SET)
+#define _485_RX_ENB  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1,  GPIO_PIN_RESET)
+
 #endif /* SRC_COMMON_DEF_H_ */

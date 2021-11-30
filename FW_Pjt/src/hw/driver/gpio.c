@@ -30,9 +30,9 @@ static void cliGpio(cli_args_t *args);
 
 gpio_tbl_t gpio_tbl[GPIO_MAX_CH] =
 {
-		{GPIOB , GPIO_PIN_9, _DEF_INPUT_PULLUP ,GPIO_PIN_RESET, GPIO_PIN_SET, 1 },    // DI모드  // SD 삽입시  low 떨어짐. 초기값"1" 별 의미 없음
-		{GPIOA , GPIO_PIN_10, _DEF_OUTPUT ,GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_HIGH }   // Wiz5500 CH0 CS
-
+		{GPIOB , GPIO_PIN_9 , _DEF_INPUT_PULLUP ,GPIO_PIN_RESET, GPIO_PIN_SET  , _DEF_HIGH },      // DI모드  // SD 삽입시  low 떨어짐. 초기값"1" 별 의미 없음
+		{GPIOA , GPIO_PIN_10, _DEF_OUTPUT       ,GPIO_PIN_SET  , GPIO_PIN_RESET, _DEF_HIGH },   // Wiz5500 CH0 CS
+		{GPIOA , GPIO_PIN_1 , _DEF_OUTPUT       ,GPIO_PIN_SET  , GPIO_PIN_RESET, _DEF_HIGH }    // MAX 485 CS
 		//{GPIOC , GPIO_PIN_8, _DEF_OUTPUT ,GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_HIGH },  // MCP2515 CH0 CS
 		//{GPIOC , GPIO_PIN_9, _DEF_OUTPUT ,GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_HIGH }   // Wiz5500 CH0 CS
 

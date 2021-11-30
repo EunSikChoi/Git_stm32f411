@@ -36,14 +36,16 @@ wiz_NetInfo gWIZNETINFO = { .mac = {0x00, 0x08, 0xdc, 0xab, 0xcd, 0x49},
 void apInit(void)
 {
 		cliOpen(_DEF_UART1, 57600);
+	 uartOpen(_DEF_UART2, 57600);
 }
 
 void apMain(void)
 {
-  uint32_t pre_time;
+  uint32_t pre_time, pre_baud;
   uint32_t led_blink_time = 1000;
 
 
+  pre_baud = uartGetBaud(_DEF_UART2);
   pre_time = millis();
 
   if(resetGetCount() >= 2)
@@ -56,11 +58,18 @@ void apMain(void)
 	{
 		if(millis()-pre_time >= led_blink_time) //
 		{
-
 			pre_time = millis();
 			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-
 		}
+
+
+    if(uartAvailable(_DEF_UART2) > 0)
+    {
+       uint8_t rx_data;
+
+       rx_data = uartRead(_DEF_UART2);
+       uartPrintf(_DEF_UART2, "UART2 Rx: %c %x\n", rx_data, rx_data);
+    }
 
 	#ifdef _USE_HW_W5500
 		uint8_t loopback_Cnt;
@@ -68,7 +77,7 @@ void apMain(void)
 		 if( loopback_Cnt++ > 4)
 		 {
 			 loopback_Cnt = 0;
-			uint8_t buffer[256]= {0,};
+			 uint8_t buffer[256]= {0,};
 
 			 for(uint8_t index = 0; index < 4; index++)
 			 {

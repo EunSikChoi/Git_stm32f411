@@ -30,7 +30,7 @@
 #define _USE_HW_RESET
 
 #define _USE_HW_UART
-#define      HW_UART_MAX_CH         1
+#define      HW_UART_MAX_CH         2
 
 #define _USE_HW_CLI
 #define      HW_CLI_CMD_NAME_MAX    16
@@ -42,7 +42,7 @@
 #define      HW_BUTTON_CH           1
 
 #define _USE_HW_GPIO
-#define      HW_GPIO_MAX_CH  				2
+#define      HW_GPIO_MAX_CH  				3
 
 #define _PIN_GPIO_SDCARD_DETECT     0 // ch 0 : SD DC
 
