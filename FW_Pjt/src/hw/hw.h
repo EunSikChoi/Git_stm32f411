@@ -26,6 +26,8 @@
 #include "spi.h"
 #include "socket.h"
 #include "modbus.h"
+#include "ModProt_HMI.h"
+#include "ModProt.h"
 
 
 void hwInit(void);

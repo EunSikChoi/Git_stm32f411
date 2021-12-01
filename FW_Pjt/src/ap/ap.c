@@ -63,13 +63,13 @@ void apMain(void)
 		}
 
 
-    if(uartAvailable(_DEF_UART2) > 0)
-    {
-       uint8_t rx_data;
-
-       rx_data = uartRead(_DEF_UART2);
-       uartPrintf(_DEF_UART2, "UART2 Rx: %c %x\n", rx_data, rx_data);
-    }
+//    if(uartAvailable(_DEF_UART2) > 0)
+//    {
+//       uint8_t rx_data;
+//
+//       rx_data = uartRead(_DEF_UART2);
+//       uartPrintf(_DEF_UART2, "UART2 Rx: %c %x\n", rx_data, rx_data);
+//    }
 
 	#ifdef _USE_HW_W5500
 		uint8_t loopback_Cnt;

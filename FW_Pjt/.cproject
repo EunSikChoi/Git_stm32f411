@@ -116,6 +116,8 @@
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/hw/driver/tcp_ip/w5500}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/hw/driver/tcp_ip}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/hw/driver/rtu}&quot;"/>
                                     								
                                 </option>
                                 								

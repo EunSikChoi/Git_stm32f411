@@ -36,6 +36,12 @@ BYTE* CommGetRxBuff(BYTE bPort);
 BYTE CommGetRxSize(BYTE bPort);
 BYTE* CommGetTxBuff(BYTE bPort);
 
+BOOL CommGetRxFlag(BYTE bPort);
+BOOL CommGetTxFlag(BYTE bPort);
+void CommClearTxBuff(BYTE bPort);
+void CommErrSetCnt(void);
+WORD CommErrGetCnt(void);
+
 #define TRUE 1
 #define FALSE 0
 
@@ -58,6 +64,12 @@ BYTE	bTx2Buff[TX2_SIZE]; // �۽� ����  //
 
 
 #define DEFAULT_BAUD_IDX	3				/* 9600 */
+
+typedef struct
+{
+	BYTE	bRx2Buff[RX2_SIZE];
+	BYTE	bTx2Buff[TX2_SIZE];
+} data_t;
 
 typedef struct {  //2011.10.24
 	WORD	bBaudIdx:8;

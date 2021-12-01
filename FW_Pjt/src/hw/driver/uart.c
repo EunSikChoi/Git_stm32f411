@@ -14,6 +14,8 @@
 #include "cdc.h"
 #include "qbuffer.h"
 #include "cli.h"
+#include "modbus.h"
+#include "ModProt.h"
 
 
 static bool is_open[UART_MAX_CH];
@@ -23,6 +25,7 @@ static qbuffer_t qbuffer[UART_MAX_CH];
 static uint8_t rx_buf[256]; 	 	  		// qbuffer buf
 static uint8_t rx_data[UART_MAX_CH];  // rx INT buf
 
+
 UART_HandleTypeDef huart1;
 
 #ifdef _USE_HW_CLI
@@ -30,6 +33,8 @@ UART_HandleTypeDef huart1;
 static void cliUart(cli_args_t *args);
 
 #endif
+
+data_t data;
 
 
 bool uartInit(void)
@@ -84,10 +89,12 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 				ret = true;
 				is_open[ch] = true;
 
-        if(HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_data[_DEF_UART2], 1) != HAL_OK) // start IT
-        {
-          ret = false;
-        }
+				 __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE); //UART RX INT Enable//
+
+//        if(HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_data[_DEF_UART2], 1) != HAL_OK) // start IT
+//        {
+//          ret = false;
+//        }
 
 			}
 		break;
@@ -109,7 +116,7 @@ uint32_t uartAvailable(uint8_t ch)
     break;
 
     case _DEF_UART2:
-		  ret = qbufferAvailable(&qbuffer[_DEF_UART2]);
+//		  ret = qbufferAvailable(&qbuffer[_DEF_UART2]);
 		break;
   }
 
@@ -128,7 +135,9 @@ uint8_t  uartRead(uint8_t ch)
      break;
 
      case _DEF_UART2:
-    	 qbufferRead(&qbuffer[_DEF_UART2], &ret, 1);
+    	// qbufferRead(&qbuffer[_DEF_UART2], &ret, 1);
+    	 data.bRx2Buff[BufIndexGet()] = (huart1.Instance->DR & 0x00FF);
+    	 ret = true;
      break;
 
    }
@@ -151,13 +160,11 @@ uint32_t uartWrite(uint8_t ch, uint8_t *p_data, uint32_t length)
     case _DEF_UART2:
 
     	_485_TX_ENB;
-
-    	status =  HAL_UART_Transmit(&huart1, p_data, length, 100);
+    	status =  HAL_UART_Transmit_IT(&huart1, p_data, length);
 
 			if(status == HAL_OK)
 			{
-			ret = length;
-			_485_RX_ENB;
+				ret = true;
 			}
 		break;
   }
@@ -213,18 +220,36 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 
 }
 
+uint8_t Rx_INT_Cnt, Tx_INT_Cnt;
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if(huart->Instance == USART1)
   {
-    qbufferWrite(&qbuffer[_DEF_UART2], &rx_data[_DEF_UART2] , 1);
+//    qbufferWrite(&qbuffer[_DEF_UART2], &rx_data[_DEF_UART2] , 1);
+//
+//    HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_data[_DEF_UART2], 1) ; // Re enable IT
+    Rx_INT_Cnt++;
 
-    HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_data[_DEF_UART2], 1) ; // Re enable IT
+    cliPrintf("RXCP %d\n",Rx_INT_Cnt );
 
   }
 }
 
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	 if (huart->Instance == USART1)
+	 {
+	//   Tx_INT_Cnt++;
+	//   cliPrintf("TXCP %d\n",Tx_INT_Cnt );
+
+	   __HAL_UART_CLEAR_FLAG(&huart1,UART_FLAG_RXNE);
+		 __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);   //UART RX INT Enable//
+
+		 _485_RX_ENB;
+
+	 }
+}
 
 
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
@@ -305,6 +330,7 @@ static void cliUart(cli_args_t *args)
   {
 
   	uartPrintf(_DEF_UART1, "Uart(485) BaudRate : %d\n", uartGetBaud(_DEF_UART2));
+  	uartPrintf(_DEF_UART1, "ID    : DEC: %d, HEX: %x\n", STATION_ID_HMI, STATION_ID_HMI);
 
   	ret = true;
   }
