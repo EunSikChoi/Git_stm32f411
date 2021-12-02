@@ -119,11 +119,6 @@ int32_t loopback_tcps(uint8_t sn, uint8_t* buf, uint16_t port)
    bSockStatus = getSn_SR(sn);
 
 
-
-
-
-   //cliPrintf("SOKET Status        : %d \n", bSockStatus);
-
    /*@ : Keep alive packet 을 송신하여 connection 이 유효한지 확인한다.
             만약 상대방이 더 이상 응답이 없어서 connection 이 유효하지 않은 경우 connection 을 종료한다. Timeout Interrupt 가 발생한다.
 	*/

@@ -18,6 +18,8 @@
 #include "ModProt.h"
 
 
+uart_tbl_t uart_tbl[UART_MAX_CH];
+
 static bool is_open[UART_MAX_CH];
 
 static qbuffer_t qbuffer[UART_MAX_CH];
@@ -41,7 +43,11 @@ bool uartInit(void)
 {
   for (int i =0; i < UART_MAX_CH; i++)
   {
-     is_open[i] = false;
+		uart_tbl[i].is_open 	 = false;
+		uart_tbl[i].baud 			 = 57600;
+		uart_tbl[i].is_tx_done 	= true;
+		uart_tbl[i].is_tx_error = false;
+		uart_tbl[i].ch				  = i;
   }
 
 
@@ -62,12 +68,16 @@ bool uartOpen(uint8_t ch, uint32_t baud)
   switch(ch)
   {
     case _DEF_UART1:
-			is_open[ch] = true;
+			 uart_tbl[ch].is_open = true;
+			 uart_tbl[ch].baud    = baud;
 			ret = true;
 	  break;
 
     case _DEF_UART2:
-    	is_open[ch] 						 = true;
+
+    	uart_tbl[ch].p_huart 			= &huart1;
+    	uart_tbl[ch].is_open 		 	= true;
+
 			huart1.Instance 				 = USART1;
       huart1.Init.BaudRate	 	 = baud;
       huart1.Init.WordLength 	 = UART_WORDLENGTH_8B;
@@ -77,25 +87,16 @@ bool uartOpen(uint8_t ch, uint32_t baud)
       huart1.Init.HwFlowCtl 	 = UART_HWCONTROL_NONE;
       huart1.Init.OverSampling = UART_OVERSAMPLING_16;
 
-      qbufferCreate(&qbuffer[_DEF_UART2], &rx_buf[0], 256);
   		_485_RX_ENB;
 
-      if (HAL_UART_Init(&huart1) != HAL_OK)
+      if (HAL_UART_Init(uart_tbl[ch].p_huart) != HAL_OK)
 			{
       	ret = false;
 			}
 			else
 			{
-				ret = true;
-				is_open[ch] = true;
-
-				 __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE); //UART RX INT Enable//
-
-//        if(HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_data[_DEF_UART2], 1) != HAL_OK) // start IT
-//        {
-//          ret = false;
-//        }
-
+				 __HAL_UART_ENABLE_IT(uart_tbl[ch].p_huart, UART_IT_RXNE); //UART RX INT Enable//
+				 ret = true;
 			}
 		break;
 
@@ -116,7 +117,7 @@ uint32_t uartAvailable(uint8_t ch)
     break;
 
     case _DEF_UART2:
-//		  ret = qbufferAvailable(&qbuffer[_DEF_UART2]);
+
 		break;
   }
 
@@ -135,7 +136,6 @@ uint8_t  uartRead(uint8_t ch)
      break;
 
      case _DEF_UART2:
-    	// qbufferRead(&qbuffer[_DEF_UART2], &ret, 1);
     	 data.bRx2Buff[BufIndexGet()] = (huart1.Instance->DR & 0x00FF);
     	 ret = true;
      break;
@@ -226,12 +226,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if(huart->Instance == USART1)
   {
-//    qbufferWrite(&qbuffer[_DEF_UART2], &rx_data[_DEF_UART2] , 1);
-//
-//    HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_data[_DEF_UART2], 1) ; // Re enable IT
-    Rx_INT_Cnt++;
-
-    cliPrintf("RXCP %d\n",Rx_INT_Cnt );
+  	//-- Check for INT Counter -- //
+    //  Rx_INT_Cnt++;
+    //  cliPrintf("RXCP %d\n",Rx_INT_Cnt );
 
   }
 }
@@ -240,11 +237,12 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	 if (huart->Instance == USART1)
 	 {
-	//   Tx_INT_Cnt++;
-	//   cliPrintf("TXCP %d\n",Tx_INT_Cnt );
+		 //-- Check for INT Counter -- //
+		 //   Tx_INT_Cnt++;
+		 //   cliPrintf("TXCP %d\n",Tx_INT_Cnt );
 
 	   __HAL_UART_CLEAR_FLAG(&huart1,UART_FLAG_RXNE);
-		 __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);   //UART RX INT Enable//
+		 __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
 
 		 _485_RX_ENB;
 
@@ -344,6 +342,16 @@ static void cliUart(cli_args_t *args)
 
   	ret = true;
   }
+
+  if(args->argc == 1 && args->isStr(0, "reset") == true) //여기서 설정한 toggle 과 동일 문자가 입력하면 아래 Loop가 실행됨//
+  {
+
+    HAL_UART_Init(uart_tbl[1].p_huart);
+  	uartPrintf(_DEF_UART1, "Uart(485) reset OK\n");
+
+  	ret = true;
+  }
+
 
 
   if(ret != true )

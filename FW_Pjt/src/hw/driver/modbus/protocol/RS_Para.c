@@ -6,10 +6,9 @@
  */
 
 
-#include <tcp_ip/protocol/modbus.h>
-#include <tcp_ip/protocol/ModProt.h>
-#include <tcp_ip/protocol/RS_Para.h>
-//#include "ModProt_HMI.h"
+#include "modbus.h"
+#include "ModProt.h"
+#include "RS_Para.h"
 
 #define ST_FAULT 0x0001
 #define ST_OK    0x0000

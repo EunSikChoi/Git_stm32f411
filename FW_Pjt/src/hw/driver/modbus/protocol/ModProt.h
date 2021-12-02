@@ -10,7 +10,8 @@
 
 #include "ModProt.H"
 #include <stdio.h>
-#include <tcp_ip/protocol/modbus.h>
+#include "modbus.h"
+#include "uart.h"
 
 
 
@@ -119,7 +120,8 @@ void RTU485Loop (BYTE bPort);
 void RTUtcpLoop(uint8_t* bRXbuf, uint16_t rxLen, uint8_t* bTXbuf);
 
 
-void HmiLoop(BYTE bPort, WORD wSel);
+//void HmiLoop(BYTE bPort, WORD wSel);
+void HmiLoop(BYTE bPort, WORD wSel, uart_tbl_t *p_uart_tbl);
 
 #endif
 

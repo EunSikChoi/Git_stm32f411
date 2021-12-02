@@ -43,6 +43,8 @@ void apMain(void)
 {
   uint32_t pre_time, pre_baud;
   uint32_t led_blink_time = 1000;
+  uint8_t loopback_Cnt;
+	uint8_t buffer[256]= {0,};
 
 
   pre_baud = uartGetBaud(_DEF_UART2);
@@ -63,21 +65,12 @@ void apMain(void)
 		}
 
 
-//    if(uartAvailable(_DEF_UART2) > 0)
-//    {
-//       uint8_t rx_data;
-//
-//       rx_data = uartRead(_DEF_UART2);
-//       uartPrintf(_DEF_UART2, "UART2 Rx: %c %x\n", rx_data, rx_data);
-//    }
 
 	#ifdef _USE_HW_W5500
-		uint8_t loopback_Cnt;
 
-		 if( loopback_Cnt++ > 4)
+		 if( loopback_Cnt++ > 10)
 		 {
 			 loopback_Cnt = 0;
-			 uint8_t buffer[256]= {0,};
 
 			 for(uint8_t index = 0; index < 4; index++)
 			 {

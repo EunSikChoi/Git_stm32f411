@@ -9,18 +9,19 @@
 #define SRC_COMMON_HW_INCLUDE_MODBUS_H_
 
 #include "hw_def.h"
+#include "uart.h"
 
 #ifdef _USE_HW_W5500
 
 typedef unsigned int        WORD;
-typedef unsigned			BOOL;
-typedef unsigned char		BYTE;
-typedef char				SBYTE;
-typedef int					SWORD;
-typedef unsigned int		WORD;
-typedef long				SLONG;
-typedef unsigned long		LONG;
-typedef float				REAL;
+typedef unsigned						BOOL;
+typedef unsigned char				BYTE;
+typedef char								SBYTE;
+typedef int									SWORD;
+typedef unsigned int				WORD;
+typedef long								SLONG;
+typedef unsigned long				LONG;
+typedef float								REAL;
 
 #define RX0_SIZE 50
 #define TX0_SIZE 40
@@ -36,8 +37,9 @@ BYTE* CommGetRxBuff(BYTE bPort);
 BYTE CommGetRxSize(BYTE bPort);
 BYTE* CommGetTxBuff(BYTE bPort);
 
-BOOL CommGetRxFlag(BYTE bPort);
-BOOL CommGetTxFlag(BYTE bPort);
+BOOL CommGetRxFlag(BYTE bPort, uart_tbl_t *p_uart_tbl);
+BOOL CommGetTxFlag(BYTE bPort, uart_tbl_t *p_uart_tbl);
+
 void CommClearTxBuff(BYTE bPort);
 void CommErrSetCnt(void);
 WORD CommErrGetCnt(void);

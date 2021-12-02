@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "hw.h"
+#include "uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -188,6 +189,9 @@ void PendSV_Handler(void)
 /**
   * @brief This function handles System tick timer.
   */
+
+uart_tbl_t uart_tbl[_DEF_UART2];
+
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
@@ -195,7 +199,7 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-  RtuLoopBack();
+  RtuLoopBack(&uart_tbl[_DEF_UART2]);
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -223,10 +227,11 @@ void SPI1_IRQHandler(void)
 /**
   * @brief This function handles USART1 global interrupt.
   */
+
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-	RtuRxTxloop();
+	RtuRxTxloop(&uart_tbl[_DEF_UART2]);
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */

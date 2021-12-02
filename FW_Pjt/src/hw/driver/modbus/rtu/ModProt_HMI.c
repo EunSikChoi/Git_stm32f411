@@ -17,6 +17,7 @@
 #include "cli.h"
 
 
+
 UART_HandleTypeDef huart1;
 //DMA_HandleTypeDef hdma_usart6_tx;
 
@@ -1211,7 +1212,7 @@ static BYTE RTUFrameCheck(BYTE bPort)
  * - Created for Jeju BSS
  */
 
-void HmiLoop(BYTE bPort, WORD wSel)
+void HmiLoop(BYTE bPort, WORD wSel, uart_tbl_t *p_uart_tbl)
 {
     //BYTE  bSize;
 	BYTE bErr, RTUFrameFlag;
@@ -1220,16 +1221,22 @@ void HmiLoop(BYTE bPort, WORD wSel)
 	BYTE* pBTx = CommGetTxBuff(bPort);	// bTxBuff
 
 
-	//CommErrGetCnt
-
 	if((CommErrGetCnt()) >= 100)
 	{
 
-		wHmiErrCnt = 0;
+				wHmiErrCnt = 0;
+
+				 __HAL_UART_CLEAR_FLAG(p_uart_tbl->p_huart, UART_FLAG_RXNE);
+				 __HAL_UART_CLEAR_FLAG(p_uart_tbl->p_huart, UART_FLAG_TC);
+				 __HAL_UART_CLEAR_FLAG(p_uart_tbl->p_huart, UART_FLAG_LBD);
+
+				 HAL_UART_Init(p_uart_tbl->p_huart);
+
+				 _485_RX_ENB;
+				 __HAL_UART_ENABLE_IT(p_uart_tbl->p_huart, UART_IT_RXNE); //UART RX INT Enable//
 
   	    CommClearTxBuff(0);
-      	commPortData[0].fTx = 0;
-      	//wBufferIndex_C  = 0;
+      	commPortData[PORT_SCIC].fTx = 0;
       	BufIndexClear();
         commPortData[PORT_SCIC].bRxIdx = 0; // first message come
         commPortData[PORT_SCIC].fIsReceiveState = 0;
@@ -1239,13 +1246,13 @@ void HmiLoop(BYTE bPort, WORD wSel)
         commPortData[PORT_SCIC].bRxIdx  = 0;
         commPortData[PORT_SCIC].bRxSize = 0;
 
-		wHmiResetCnt++;
+        wHmiResetCnt++;
 
-		if (wHmiResetCnt >= 4)
-		{  // count 4 PI_FUSE ����
-			g_wFlagHmiErr = 1;
-			wHmiResetCnt = 5;  // max limit
-		}
+				if (wHmiResetCnt >= 4) // 나중에 폴트 및 보호 동작 추가해야함 // 리트라이 5번함 //
+				{  // count 4 PI_FUSE ����
+					g_wFlagHmiErr = 1;
+					wHmiResetCnt = 5;  // max limit
+				}
 	}
 	else
 	{
@@ -1269,7 +1276,7 @@ void HmiLoop(BYTE bPort, WORD wSel)
 
 	//	_485_TX_ENB;
 
-		__HAL_UART_ENABLE_IT(&huart1, UART_IT_TC);   //UART TX INT Enable//
+		__HAL_UART_ENABLE_IT(p_uart_tbl->p_huart, UART_IT_TC);   //UART TX INT Enable//
 
 		if (bErr)
 		{
@@ -1306,43 +1313,21 @@ data_t data;
 
 BYTE* CommGetRxBuff(BYTE bPort)
 {
-	//if(bPort==PORT_SCIB)
-		//return bRx1Buff;
-	//else if(wSelCommMode == SEL_HMI && bPort == PORT_SCIC)//For HMI
-
-	   // return bRx2Buff;
 	    return data.bRx2Buff;
-
-
-	//else
-	 // return bRxBuff[bPort];
 }
 
 BYTE CommGetRxSize(BYTE bPort)
 {
-	//if(bPort==PORT_SCIB)   //For HMI
-	//	return commPortData[bPort].bRxIdx;
-	//else if(wSelCommMode == SEL_HMI && bPort == PORT_SCIC)
 	    return commPortData[bPort].bRxIdx;
-	//else
-		//return bRxIdx[bPort];
 }
 
 BYTE* CommGetTxBuff(BYTE bPort)
 {
-	//if(bPort==PORT_SCIB)
-	//	return bTx1Buff;
-	//else if(wSelCommMode == SEL_HMI && bPort == PORT_SCIC)//For HMI
-	    //return bTx2Buff;
 	    return data.bTx2Buff;
-
-	//else
-	 //   return bTxBuff[bPort] + 1;
 }
 
 BOOL CommIsTxEmpty(BYTE bPort)
 {
-	//return (bTxSize[bPort] == bTxIdx[bPort]);
 	BOOL ret = 0;
 
 	return ret;
@@ -1350,39 +1335,27 @@ BOOL CommIsTxEmpty(BYTE bPort)
 
 void CommClearTxBuff(BYTE bPort)
 {
-	//bTxSize[bPort] = bTxIdx[bPort] = 0;
-
 	commPortData[bPort].bTxSize = commPortData[bPort].bTxIdx = 0;
 }
 
 void CommTxDataBuffer (BYTE bPort)
 {
 	commPortData[bPort].bTxIdx = 0;
-	//commPortData[bPort].bTxIdx = 1;
-
-	//if (bPort == PORT_SCIB) {
-//	RTS_SEND;
-	//TXB_DATA(bTx1Buff[0]);
-		//}
-	//else if (bPort == PORT_SCIC) {
-       // RTSC_SEND;
-       // TXC_DATA(bTx2Buff[0]);
-	//}
 
 }
 
-BOOL CommGetRxFlag(BYTE bPort)
+BOOL CommGetRxFlag(BYTE bPort, uart_tbl_t *p_uart_tbl)
 {
 	bool ret = false;
-	ret = __HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE);
+	ret = __HAL_UART_GET_FLAG(p_uart_tbl->p_huart, UART_FLAG_RXNE);
 	return ret;
 }
 
 
-BOOL CommGetTxFlag(BYTE bPort)
+BOOL CommGetTxFlag(BYTE bPort, uart_tbl_t *p_uart_tbl)
 {
 	bool ret = false;
-	ret = __HAL_UART_GET_FLAG(&huart1, UART_FLAG_TC);
+	ret = __HAL_UART_GET_FLAG(p_uart_tbl->p_huart, UART_FLAG_TC);
 	return ret;
 }
 
@@ -1406,8 +1379,6 @@ WORD CommErrGetCnt(void)
 	return ret;
 
 }
-
-
 
 void BufIndexSet(void)
 {
@@ -1442,14 +1413,16 @@ WORD BufIndexClear(void)
 
 }
 
-void RtuLoopBack(void)
+uart_tbl_t uart_tbl[1];
+
+void RtuLoopBack(uart_tbl_t *p_uart_tbl)
 {
 
 	if(millis()-pre_time_rtu >= 100)
 	  {
 		  pre_time_rtu = millis();
 
-		   HmiLoop(PORT_SCIC, wSelCommMode);
+		   HmiLoop(PORT_SCIC, wSelCommMode, p_uart_tbl);
 
 		   if(commPortData[PORT_SCIC].bCntEOF < 0xFFFF)
 		   {
@@ -1463,7 +1436,7 @@ void RtuLoopBack(void)
 }
 
 
-void RtuRxTxloop(void)
+void RtuRxTxloop(uart_tbl_t *p_uart_tbl)
 {
 
 	uint8_t rxd = 0;
@@ -1471,8 +1444,8 @@ void RtuRxTxloop(void)
 	bool temp_Tx_flag = 0;
 	uint8_t ret = 0;
 
-	temp_Rx_flag	 	 = CommGetRxFlag(PORT_SCIC);
-	temp_Tx_flag = CommGetTxFlag(PORT_SCIC);
+	temp_Rx_flag	 	 = CommGetRxFlag(PORT_SCIC, p_uart_tbl);
+	temp_Tx_flag		 = CommGetTxFlag(PORT_SCIC, p_uart_tbl);
 
 	COMM_PORT_DATA  *port_c;
 	port_c = &commPortData[PORT_SCIC];
@@ -1487,7 +1460,7 @@ void RtuRxTxloop(void)
 
 			 if (BufIndexGet() < (RX2_SIZE-1))
 			 {
-				  ret = uartRead(_DEF_UART2);
+				  ret = uartRead(p_uart_tbl->ch);
 
 				  if ( ret == true )
 				  {
@@ -1515,8 +1488,8 @@ void RtuRxTxloop(void)
 	{
 		  BufIndexClear();
 		  port_c->fIsReceiveState = FALSE;
-		  __HAL_UART_DISABLE_IT(&huart1, UART_IT_RXNE);
-		  __HAL_UART_CLEAR_FLAG(&huart1,UART_FLAG_RXNE);
+		  __HAL_UART_DISABLE_IT(p_uart_tbl->p_huart, UART_IT_RXNE);
+		  __HAL_UART_CLEAR_FLAG(p_uart_tbl->p_huart, UART_FLAG_RXNE);
 	}
 
 
@@ -1526,12 +1499,12 @@ void RtuRxTxloop(void)
 		if (port_c->bTxIdx < port_c->bTxSize)
 		{
 
-			 ret = uartWrite(_DEF_UART2, &data.bTx2Buff[port_c->bTxIdx], port_c->bTxSize);
+			 ret = uartWrite(p_uart_tbl->ch, &data.bTx2Buff[port_c->bTxIdx], port_c->bTxSize);
 
 			 if (ret == true)
 			 {
-				__HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
-				__HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_TC);
+				__HAL_UART_DISABLE_IT(p_uart_tbl->p_huart, UART_IT_TC);
+				__HAL_UART_CLEAR_FLAG(p_uart_tbl->p_huart, UART_FLAG_TC);
 				port_c->bTxIdx = 0; // first message come //= CommClearTxBuff(0);
 				commPortData[0].fTx = 0;
 				temp_Tx_flag = 0;

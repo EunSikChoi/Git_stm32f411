@@ -11,10 +11,11 @@
 
 
 #include "ModProt.h"
+#include "uart.h"
 
 
-void RtuRxTxloop(void);
-void RtuLoopBack(void);
+void RtuRxTxloop(uart_tbl_t *p_uart_tbl);
+void RtuLoopBack(uart_tbl_t *p_uart_tbl);
 
 static BYTE bTxFrameSize;
 
@@ -37,6 +38,9 @@ static void CmdSingleRead(BYTE*, BYTE, WORD);
 void BufIndexSet(void);
 WORD BufIndexGet(void);
 WORD BufIndexClear(void);
+
+
+
 
 
 
