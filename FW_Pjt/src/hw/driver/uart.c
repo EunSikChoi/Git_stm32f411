@@ -29,6 +29,7 @@ static uint8_t rx_data[UART_MAX_CH];  // rx INT buf
 
 
 UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 #ifdef _USE_HW_CLI
 
@@ -160,7 +161,8 @@ uint32_t uartWrite(uint8_t ch, uint8_t *p_data, uint32_t length)
     case _DEF_UART2:
 
     	_485_TX_ENB;
-    	status =  HAL_UART_Transmit_IT(&huart1, p_data, length);
+    	//status =  HAL_UART_Transmit_IT(&huart1, p_data, length);
+    	status =  HAL_UART_Transmit_DMA(&huart1, p_data, length);
 
 			if(status == HAL_OK)
 			{
@@ -261,6 +263,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
   /* USER CODE END USART1_MspInit 0 */
     /* USART1 clock enable */
     __HAL_RCC_USART1_CLK_ENABLE();
+    __HAL_RCC_DMA2_CLK_ENABLE();
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -268,6 +271,11 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     PA15     ------> USART1_TX
     PB3     ------> USART1_RX
     */
+
+    /* DMA2_Stream7_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 4, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+
     GPIO_InitStruct.Pin = GPIO_PIN_15;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -281,6 +289,25 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /* USART1 DMA Init */
+    /* USART1_TX Init */
+    hdma_usart1_tx.Instance = DMA2_Stream7;
+    hdma_usart1_tx.Init.Channel = DMA_CHANNEL_4;
+    hdma_usart1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_usart1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart1_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart1_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart1_tx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_usart1_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_usart1_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart1_tx);
 
     /* USART1 interrupt Init */
     HAL_NVIC_SetPriority(USART1_IRQn, 2, 0);
@@ -309,6 +336,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_15);
 
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3);
+
+    /* USART1 DMA DeInit */
+    HAL_DMA_DeInit(uartHandle->hdmatx);
 
     /* USART1 interrupt Deinit */
     HAL_NVIC_DisableIRQ(USART1_IRQn);
