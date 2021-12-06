@@ -33,6 +33,7 @@ bool qbufferCreate (qbuffer_t *p_node, uint8_t *p_buf,  uint32_t length)
    p_node->in =  0;
    p_node->out = 0;
    p_node->len = length;
+   p_node->size  = 1;
    p_node->p_buf = p_buf;
 
 

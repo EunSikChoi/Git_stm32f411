@@ -20,7 +20,7 @@ typedef struct
   uint32_t in;
   uint32_t out;
   uint32_t len;
-
+  uint32_t size;
   uint8_t *p_buf;
 
 }qbuffer_t;

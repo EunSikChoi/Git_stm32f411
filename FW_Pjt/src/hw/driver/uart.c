@@ -18,17 +18,15 @@
 #include "ModProt.h"
 
 
-uart_tbl_t uart_tbl[UART_MAX_CH];
+uart_tbl_t uart_tbl[UART_MAX_CH];         // static 선언 하면 hw falut 생성됨 // 모드버스에서 사용됨 //
 
-//static bool is_open[UART_MAX_CH];
+//static qbuffer_t qbuffer[UART_MAX_CH];  //삭제해야됨 해당 구조체는 uart_tbl 맴버로 정의됬기 때문// 중복선언시 값 초기화되어 있음 //
 
-static qbuffer_t qbuffer[UART_MAX_CH];
+#define UART_MAX_BUF_SIZE    256
+static uint8_t rx_buf[UART_MAX_BUF_SIZE]; // qbuffer buf // CLI
 
-static uint8_t rx_buf[256]; 	 	  		// qbuffer buf // RTU
-//static uint8_t rx_buf1[256]; 	 	  		// qbuffer buf // CLI Up
 
-static uint8_t rx_data[UART_MAX_CH];  // rx INT buf
-
+static uint8_t rx_data[UART_MAX_CH];      // rx INT buf
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
@@ -83,8 +81,8 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 
     case _DEF_UART2:
 
-    	uart_tbl[ch].p_huart 			= &huart1;
-    	uart_tbl[ch].is_open 		 	= true;
+    	uart_tbl[ch].p_huart 		 = &huart1;
+    	uart_tbl[ch].is_open 		 = true;
 
 			huart1.Instance 				 = USART1;
       huart1.Init.BaudRate	 	 = baud;
@@ -129,7 +127,7 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 
       HAL_UART_DeInit(&huart2);
 
-      qbufferCreate(&qbuffer[_DEF_UART3], &rx_buf[0], 256);
+      qbufferCreate(&uart_tbl[ch].qbuffer, &rx_buf[0], UART_MAX_BUF_SIZE);
 
       if (HAL_UART_Init(uart_tbl[ch].p_huart) != HAL_OK)
 			{
@@ -137,17 +135,14 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 			}
 			else
 			{
-				 __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE); //UART RX INT Enable//
 
-				 if(HAL_UART_Receive_IT(&huart2, (uint8_t *)&rx_data[_DEF_UART3], 1) != HAL_OK) // start IT
+				 if(HAL_UART_Receive_IT(uart_tbl[ch].p_huart, (uint8_t *)&rx_data[_DEF_UART3], 1) != HAL_OK) // start IT
 				 {
 					 ret = false;
 				 }
 				 ret = true;
 			}
-
 	  break;
-
   }
 
   return ret;
@@ -169,7 +164,7 @@ uint32_t uartAvailable(uint8_t ch)
 		break;
 
     case _DEF_UART3:
-    	ret = qbufferAvailable(&qbuffer[_DEF_UART3]);
+    	ret = qbufferAvailable(&uart_tbl[ch].qbuffer);
 	  break;
   }
 
@@ -193,7 +188,7 @@ uint8_t  uartRead(uint8_t ch)
      break;
 
      case _DEF_UART3:
-    	 qbufferRead(&qbuffer[_DEF_UART3], &ret, 1);
+    	 qbufferRead(&uart_tbl[ch].qbuffer, &ret, 1);
  	   break;
 
    }
@@ -306,12 +301,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
   if (huart->Instance == USART2)
   {
-
- // 	 cliPrintf("RX!!! %d\n",16 );
-
-    qbufferWrite(&qbuffer[_DEF_UART3], &rx_data[_DEF_UART3], 1);
-
-    HAL_UART_Receive_IT(&huart2, (uint8_t *)&rx_data[_DEF_UART3], 1) ;// // start IT
+    qbufferWrite(&uart_tbl[_DEF_UART3].qbuffer, &rx_data[_DEF_UART3], 1);
+    HAL_UART_Receive_IT(&huart2, (uint8_t *)&rx_data[_DEF_UART3], 1) ;
   }
 
 }
@@ -344,6 +335,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
   /* USER CODE END USART1_MspInit 0 */
     /* USART1 clock enable */
     __HAL_RCC_USART1_CLK_ENABLE();
+    __HAL_RCC_DMA2_CLK_ENABLE();
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -351,6 +343,11 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     PA15     ------> USART1_TX
     PB3     ------> USART1_RX
     */
+
+    /* DMA2_Stream7_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 4, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+
     GPIO_InitStruct.Pin = GPIO_PIN_15;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -412,7 +409,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* USART2 interrupt Init */
-    HAL_NVIC_SetPriority(USART2_IRQn, 1, 0);
+    HAL_NVIC_SetPriority(USART2_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
 

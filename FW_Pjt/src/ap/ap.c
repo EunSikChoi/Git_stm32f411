@@ -71,9 +71,11 @@ void apMain(void)
 	  if(uartAvailable(_DEF_UART3) > 0)
 	  {
 			uint8_t rx_data;
+			pre_time = millis();
 
 			rx_data = uartRead(_DEF_UART3);
-			uartPrintf(_DEF_UART3, "RxData : %c 0x%x\n", rx_data, rx_data);
+			uartPrintf(_DEF_UART3, "RxData1111222233334444444444555555555555 : %c 0x%x\n", rx_data, rx_data);
+			uartPrintf(_DEF_UART3, "Time %d ms \n", millis()-pre_time );
 	  }
 
 

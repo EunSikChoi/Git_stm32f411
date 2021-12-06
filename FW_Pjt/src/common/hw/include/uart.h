@@ -37,9 +37,11 @@ typedef struct
   uint8_t ch;
   uint32_t baud;
   qbuffer_t qbuffer;
+#if UART_MAX_CH > 1
   UART_HandleTypeDef *p_huart;
   DMA_HandleTypeDef  *p_hdma_rx;
   DMA_HandleTypeDef  *p_hdma_tx;
+#endif
 
 }uart_tbl_t;
 
