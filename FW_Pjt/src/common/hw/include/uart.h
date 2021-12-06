@@ -38,6 +38,7 @@ typedef struct
   uint32_t baud;
   qbuffer_t qbuffer;
   UART_HandleTypeDef *p_huart;
+  DMA_HandleTypeDef  *p_hdma_rx;
   DMA_HandleTypeDef  *p_hdma_tx;
 
 }uart_tbl_t;
