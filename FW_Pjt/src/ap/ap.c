@@ -35,14 +35,14 @@ wiz_NetInfo gWIZNETINFO = { .mac = {0x00, 0x08, 0xdc, 0xab, 0xcd, 0x49},
 
 void apInit(void)
 {
-	  cliOpen(_DEF_UART1, 57600);
+	 cliOpen(_DEF_UART1, 57600);
 	 uartOpen(_DEF_UART2, 57600);
 	 uartOpen(_DEF_UART3, 57600);
 }
 
 UART_HandleTypeDef huart2;
 
-//extern qbuffer_t qbuffer;
+
 
 void apMain(void)
 {
@@ -67,18 +67,20 @@ void apMain(void)
 			pre_time = millis();
 			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 		}
-
+	#if 1
 	  if(uartAvailable(_DEF_UART3) > 0)
 	  {
 			uint8_t rx_data;
 			pre_time = millis();
 
 			rx_data = uartRead(_DEF_UART3);
+
 			uartPrintf(_DEF_UART3, "RxData1111222233334444444444555555555555 : %c 0x%x\n", rx_data, rx_data);
-			uartPrintf(_DEF_UART3, "Time %d ms \n", millis()-pre_time );
+
+			uartPrintf(_DEF_UART3, "Time %d ms\n", millis()-pre_time );
+
 	  }
-
-
+	#endif
 
 
 	#ifdef _USE_HW_W5500

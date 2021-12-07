@@ -721,6 +721,7 @@ void cliMemoryDump(cli_args_t *args)
   int idx1, i;
   unsigned int *ascptr;
   unsigned char asc[4];
+  uint32_t pre_time;
 
   int    argc = args->argc;
   char **argv = args->argv;
@@ -740,6 +741,9 @@ void cliMemoryDump(cli_args_t *args)
   ascptr = (unsigned int *)addr;
 
   cliPrintf("\n   ");
+
+  pre_time = millis();
+
   for (idx = 0; idx<size; idx++)
   {
     if((idx%4) == 0)
@@ -771,6 +775,8 @@ void cliMemoryDump(cli_args_t *args)
     }
     addr++;
   }
+
+  cliPrintf("  time MD : %d ms\n", millis() - pre_time);
 }
 
 
