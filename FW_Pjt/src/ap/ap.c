@@ -65,7 +65,7 @@ void apMain(void)
 		if(millis()-pre_time >= led_blink_time) //
 		{
 			pre_time = millis();
-			HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+		//	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 		}
 	#if 1
 	  if(uartAvailable(_DEF_UART3) > 0)

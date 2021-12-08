@@ -137,6 +137,8 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 
       __HAL_RCC_DMA1_CLK_ENABLE();
 
+      __HAL_UART_ENABLE_IT(uart_tbl[ch].p_huart, UART_IT_RXNE); //UART RX INT Enable//
+
       if (HAL_UART_Init(uart_tbl[ch].p_huart) != HAL_OK)
 			{
       	ret = false;
@@ -403,6 +405,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 
    if(huart->Instance == USART2)
   {
+	   __HAL_UART_CLEAR_FLAG(&huart2,UART_FLAG_RXNE);
+		 __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+
  	 //is_tx_done[_DEF_UART2] = true; // 수신 준비 됬다고 알려주는 신호
   	 uart_tbl[_DEF_UART3].is_tx_done  = true;
   	 return;
