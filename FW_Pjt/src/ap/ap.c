@@ -9,6 +9,7 @@
 #include "ap.h"
 #include "spi.h"
 #include "loopback.h"
+#include "log.h"
 
 const uint8_t spi_ch1 = _DEF_SPI1; // Wiz5500
 
@@ -42,7 +43,7 @@ void apInit(void)
 
 UART_HandleTypeDef huart2;
 
-
+uint16_t count;
 
 void apMain(void)
 {
@@ -65,7 +66,7 @@ void apMain(void)
 		if(millis()-pre_time >= led_blink_time) //
 		{
 			pre_time = millis();
-		//	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 		}
 	#if 1
 	  if(uartAvailable(_DEF_UART3) > 0)
@@ -78,6 +79,10 @@ void apMain(void)
 			uartPrintf(_DEF_UART3, "RxData1111222233334444444444555555555555 : %c 0x%x\n", rx_data, rx_data);
 
 			uartPrintf(_DEF_UART3, "Time %d ms\n", millis()-pre_time );
+
+			count++;
+			logPrintf("No.%d  Time Date   \t: %s: %s \r\n", count, __TIME__,__DATE__ );
+
 
 	  }
 	#endif

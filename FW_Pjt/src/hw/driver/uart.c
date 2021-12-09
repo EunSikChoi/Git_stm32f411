@@ -76,6 +76,9 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 			 uart_tbl[ch].is_open = true;
 			 uart_tbl[ch].baud    = baud;
 			ret = true;
+
+			logPrintf("uartOpen     \t\t: DEF_UART1\r\n");
+
 	  break;
 
     case _DEF_UART2:
@@ -109,6 +112,9 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 			    HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 				 ret = true;
+
+				 logPrintf("uartOpen     \t\t: DEF_UART2\r\n");
+
 			}
 		break;
 
@@ -161,6 +167,9 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 	       HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
 
 				 ret = true;
+
+				 logPrintf("uartOpen     \t\t: DEF_UART3\r\n");
+
 			}
 	  break;
   }

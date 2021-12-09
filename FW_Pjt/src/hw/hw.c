@@ -18,6 +18,11 @@ void hwInit(void)
 
 	cliInit();
 	ledInit();
+  logInit();
+
+  logPrintf("[ Firmware Begin... ]\r\n");
+  logPrintf("Booting..Name \t\t: %s\r\n", _DEF_BOARD_NAME);
+  logPrintf("Booting..Ver  \t\t: %s\r\n", _DEF_FIRMWATRE_VERSION);
 
 	usbInit();
 
@@ -40,6 +45,6 @@ void hwInit(void)
  	W5500_hw_Rst();
 	W5500_init();
 
-
+	logBoot(false); // END Boot log //
 
 }

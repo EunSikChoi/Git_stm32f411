@@ -14,6 +14,9 @@
 #include "def.h"
 #include "bsp.h"
 
+#define _DEF_FIRMWATRE_VERSION    "V211013R2"
+#define _DEF_BOARD_NAME           "STM32G431"
+
 
 #define _USE_HW_CDC
 #define _USE_HW_FLASH
@@ -48,6 +51,11 @@
 
 #define _USE_HW_SPI
 #define      HW_SPI_MAX_CH    1  //1: Wiz5500 //
+
+#define _USE_HW_LOG
+#define      HW_LOG_CH              _DEF_UART1 // CLI채널과 같아야함 //
+#define      HW_LOG_BOOT_BUF_MAX    1024
+#define      HW_LOG_LIST_BUF_MAX    2048
 
 #define FLASH_USER_START_ADDR (uint32_t)0x0800EFEA
 #define FLASH_USER_LENGTH 32

@@ -33,5 +33,7 @@ bool usbInit(void)
 
   MX_USB_DEVICE_Init();
 
+  logPrintf("usbInit     \t\t: CDC_MODE\r\n");
+
   return ret;
 }
