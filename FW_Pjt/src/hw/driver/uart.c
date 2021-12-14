@@ -141,6 +141,8 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 
       qbufferCreate(&uart_tbl[ch].qbuffer, &rx_buf[ch][0], UART_MAX_BUF_SIZE);
 
+			__485_CLI_RX_ENB;
+
       __HAL_RCC_DMA1_CLK_ENABLE();
 
       __HAL_UART_ENABLE_IT(uart_tbl[ch].p_huart, UART_IT_RXNE); //UART RX INT Enable//
@@ -255,6 +257,8 @@ uint32_t uartWrite(uint8_t ch, uint8_t *p_data, uint32_t length)
 
     case _DEF_UART3:
 
+
+
 	#if 0 // case 1  // Tx polling
     	status = HAL_UART_Transmit(uart_tbl[ch].p_huart, p_data, length, 100);
 
@@ -304,6 +308,8 @@ uint32_t uartWrite(uint8_t ch, uint8_t *p_data, uint32_t length)
 		  {
 		  	tx_buf[0][i] = p_data[i];
 		  }
+
+		  __485_CLI_TX_ENB;
 
 		  status = HAL_UART_Transmit_DMA(uart_tbl[ch].p_huart, &tx_buf[0][0], length);
 
@@ -419,6 +425,8 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 
  	 //is_tx_done[_DEF_UART2] = true; // 수신 준비 됬다고 알려주는 신호
   	 uart_tbl[_DEF_UART3].is_tx_done  = true;
+
+  	 __485_CLI_RX_ENB;
   	 return;
  }
 
